@@ -1,0 +1,5 @@
+rawFileSearch: /Users/everettschlawin/es_programs/mirage_runs/mirage_output_009_test_tser2D/sim_data/*_uncal.fits
+outputDir: /Users/everettschlawin/Documents/jwst/ers/sim_data/proc_files
+photParam: None
+noutputs: 4
+add_noutputs_keyword: True

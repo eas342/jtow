@@ -3,3 +3,5 @@ outputDir: /Users/everettschlawin/Documents/jwst/ers/sim_data/proc_files
 photParam: None
 noutputs: 4
 add_noutputs_keyword: True
+ROEBACorrection: True
+autoROEBAmasks: True

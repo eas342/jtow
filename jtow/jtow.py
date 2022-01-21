@@ -87,13 +87,13 @@ class jw(object):
         
         self.max_cores = "half"
         
-
-        
-        #photParam = {'refStarPos': [[67.0 - 1.0,30.0 - 1.0]],'backStart':49,'backEnd': 50,
-        self.photParam = {'refStarPos': [[1052,57]],'backStart':100,'backEnd': 101,
-                          'FITSextension': 1,
-                          'isCube': True,'cubePlane':0,'procFiles':'*.fits'}
-        
+        if self.param['autoROEBAmasks'] == True:
+            #photParam = {'refStarPos': [[67.0 - 1.0,30.0 - 1.0]],'backStart':49,'backEnd': 50,
+            self.photParam = {'refStarPos': [[1052,57]],'backStart':100,'backEnd': 101,
+                              'FITSextension': 1,
+                              'isCube': True,'cubePlane':0,'procFiles':'*.fits'}
+        else:
+            self.photParam = None
     
     def get_parameters(self,paramFile,directParam=None):
         if directParam is None:
@@ -131,6 +131,9 @@ class jw(object):
     
         self.all_uncal_files = sorted(all_uncal_files) #sort files alphabetically.
     
+    def test(self):
+        print(test)
+    
     def run_jw(self):
         """
         Run the JWST pipeline for all uncal files
@@ -161,57 +164,66 @@ class jw(object):
             del saturation ## try to save memory
     
     
-            # Instantiate and set parameters
-            refpix_step = RefPixStep()
-            #refpix_step.output_dir = output_dir
-            #refpix_step.save_results = True
-    
-            # try using a copy of the bias results as the refpix output
-            # refpix = refpix_step.run(superbias)
-            # es_refpix = deepcopy(refpix)
-            # the old way was to run the refpix and then replace it
-            es_refpix = deepcopy(superbias)
-    
-            ngroups = superbias.meta.exposure.ngroups
-            nints = superbias.data.shape[0] ## use the array size because segmented data could have fewer ints
-            ## (instead of 
-    
-            # First, make sure that the aperture looks good. Here I have cheated and used a final rampfit result.
-    
-            # In[389]:
-    
-    
-            phot = phot_pipeline.phot(directParam=self.photParam)
-    
-    
-            # In[390]:
-    
-    
-            #phot.showStamps(showPlot=True,boxsize=200,vmin=0,vmax=1)
-    
-    
-            # Everything inside the larger blue circle will be masked when doing reference pixel corrections
-    
-            # In[391]:
-    
-    
-            for oneInt in tqdm.tqdm(np.arange(nints)):
-                for oneGroup in np.arange(ngroups):
+
             
-                    rowSub, modelImg = rowamp_sub.do_backsub(superbias.data[oneInt,oneGroup,:,:],phot)
-                    es_refpix.data[oneInt,oneGroup,:,:] = rowSub
+            if self.param['ROEBACorrection'] == True:
+                # try using a copy of the bias results as the refpix output
+                # refpix = refpix_step.run(superbias)
+                # refpix_res = deepcopy(refpix)
+                # the old way was to run the refpix and then replace it
+                refpix_res = deepcopy(superbias)
+    
+                ngroups = superbias.meta.exposure.ngroups
+                nints = superbias.data.shape[0] ## use the array size because segmented data could have fewer ints
+                ## (instead of 
+    
+                # First, make sure that the aperture looks good. Here I have cheated and used a final rampfit result.
+    
+                # In[389]:
+    
+                if self.photParam is None:
+                    phot = None
+                else:
+                    phot = phot_pipeline.phot(directParam=self.photParam)
     
     
-            # # Linearity Step
+                # In[390]:
     
-            # In[328]:
+    
+                #phot.showStamps(showPlot=True,boxsize=200,vmin=0,vmax=1)
+    
+    
+                # Everything inside the larger blue circle will be masked when doing reference pixel corrections
+    
+                # In[391]:
+    
+    
+                for oneInt in tqdm.tqdm(np.arange(nints)):
+                    for oneGroup in np.arange(ngroups):
+            
+                        rowSub, modelImg = rowamp_sub.do_backsub(superbias.data[oneInt,oneGroup,:,:],phot)
+                        refpix_res.data[oneInt,oneGroup,:,:] = rowSub
+                
+                # # Linearity Step
+    
+                # In[328]:
+                
+                
+                
+            else:
+                # Instantiate and set parameters
+                refpix_step = RefPixStep()
+                #refpix_step.output_dir = output_dir
+                #refpix_step.save_results = True
+                refpix_res = refpix_step.run(superbias)
+            
             del superbias ## try to save memory
     
             # Using the run() method
             linearity_step = LinearityStep()
             # refpix step
-            linearity = linearity_step.run(es_refpix)
-            del es_refpix ## try to save memory
+            linearity = linearity_step.run(refpix_res)
+            del refpix_res ## try to save memory
     
             # # Persistence Step
     

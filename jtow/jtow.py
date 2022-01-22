@@ -88,12 +88,34 @@ class jw(object):
         self.max_cores = "half"
         
         if self.param['autoROEBAmasks'] == True:
-            #photParam = {'refStarPos': [[67.0 - 1.0,30.0 - 1.0]],'backStart':49,'backEnd': 50,
-            self.photParam = {'refStarPos': [[1052,57]],'backStart':100,'backEnd': 101,
-                              'FITSextension': 1,
-                              'isCube': True,'cubePlane':0,'procFiles':'*.fits'}
+            firstHead = fits.getheader(self.all_uncal_files[0])
+            firstHead_sci = fits.getheader(self.all_uncal_files[0],extname='SCI')
+            if firstHead['PUPIL'] == 'GRISMR':
+                if firstHead['FILTER'] == 'F444W':
+                    self.photParam = None
+                    Nx = firstHead_sci['NAXIS1']
+                    Ny = firstHead_sci['NAXIS2']
+                    mask1 = np.ones([Ny,Nx],dtype=bool)
+                    
+                    #mask1[0:4,:] = False
+                    mask1[:,0:4] = False
+                    mask1[:,-4:] = False
+                    mask1[22:52,794:2048] = False
+                    
+                    self.ROEBAmask = mask1
+                else:
+                    raise NotImplementedError
+            ## NOTE TO SELF: I SHOULD CHECK ALL HEADERS, NOT JUST ONE!! Will fix this later
+            
+            else:
+                #photParam = {'refStarPos': [[67.0 - 1.0,30.0 - 1.0]],'backStart':49,'backEnd': 50,
+                self.photParam = {'refStarPos': [[1052,57]],'backStart':100,'backEnd': 101,
+                                  'FITSextension': 1,
+                                  'isCube': True,'cubePlane':0,'procFiles':'*.fits'}
+                self.ROEBAmask = None
         else:
             self.photParam = None
+            self.ROEBAmask = None
     
     def get_parameters(self,paramFile,directParam=None):
         if directParam is None:
@@ -201,7 +223,9 @@ class jw(object):
                 for oneInt in tqdm.tqdm(np.arange(nints)):
                     for oneGroup in np.arange(ngroups):
             
-                        rowSub, modelImg = rowamp_sub.do_backsub(superbias.data[oneInt,oneGroup,:,:],phot)
+                        rowSub, modelImg = rowamp_sub.do_backsub(superbias.data[oneInt,oneGroup,:,:],
+                                                                 phot,
+                                                                 backgMask=self.ROEBAmask)
                         refpix_res.data[oneInt,oneGroup,:,:] = rowSub
                 
                 # # Linearity Step

@@ -91,7 +91,25 @@ class jw(object):
             firstHead = fits.getheader(self.all_uncal_files[0])
             firstHead_sci = fits.getheader(self.all_uncal_files[0],extname='SCI')
             if firstHead['PUPIL'] == 'GRISMR':
-                if firstHead['FILTER'] == 'F444W':
+                grismsFilterList = ['F322W2','F444W']
+                if firstHead['FILTER'] in grismsFilterList:
+                    self.photParam = None
+                    Nx = firstHead_sci['NAXIS1']
+                    Ny = firstHead_sci['NAXIS2']
+                    mask1 = np.ones([Ny,Nx],dtype=bool)
+                    
+                    #mask1[0:4,:] = False
+                    mask1[:,0:4] = False
+                    mask1[:,-4:] = False
+                    if firstHead['FILTER'] == 'F444W':
+                        mask1[22:52,794:2048] = False
+                    elif firstHead['FILTER'] == 'F322W2':
+                        mask1[22:52,50:1780] = False
+                    else:
+                        raise NotImplementedError
+                    
+                    self.ROEBAmask = mask1
+                elif firstHead['FILTER'] == 'F322W2':
                     self.photParam = None
                     Nx = firstHead_sci['NAXIS1']
                     Ny = firstHead_sci['NAXIS2']

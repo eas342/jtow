@@ -11,7 +11,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = ["tshirt",
-                "jwst"]
+                "jwst >= 0.1dev9"]
 
 test_requirements = ['pytest>=3', ]
 

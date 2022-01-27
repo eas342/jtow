@@ -87,53 +87,9 @@ class jw(object):
         
         self.max_cores = "half"
         
-        if self.param['autoROEBAmasks'] == True:
-            firstHead = fits.getheader(self.all_uncal_files[0])
-            firstHead_sci = fits.getheader(self.all_uncal_files[0],extname='SCI')
-            if firstHead['PUPIL'] == 'GRISMR':
-                grismsFilterList = ['F322W2','F444W']
-                if firstHead['FILTER'] in grismsFilterList:
-                    self.photParam = None
-                    Nx = firstHead_sci['NAXIS1']
-                    Ny = firstHead_sci['NAXIS2']
-                    mask1 = np.ones([Ny,Nx],dtype=bool)
-                    
-                    #mask1[0:4,:] = False
-                    mask1[:,0:4] = False
-                    mask1[:,-4:] = False
-                    if firstHead['FILTER'] == 'F444W':
-                        mask1[22:52,794:2048] = False
-                    elif firstHead['FILTER'] == 'F322W2':
-                        mask1[22:52,50:1780] = False
-                    else:
-                        raise NotImplementedError
-                    
-                    self.ROEBAmask = mask1
-                elif firstHead['FILTER'] == 'F322W2':
-                    self.photParam = None
-                    Nx = firstHead_sci['NAXIS1']
-                    Ny = firstHead_sci['NAXIS2']
-                    mask1 = np.ones([Ny,Nx],dtype=bool)
-                    
-                    #mask1[0:4,:] = False
-                    mask1[:,0:4] = False
-                    mask1[:,-4:] = False
-                    mask1[22:52,794:2048] = False
-                    
-                    self.ROEBAmask = mask1
-                else:
-                    raise NotImplementedError
-            ## NOTE TO SELF: I SHOULD CHECK ALL HEADERS, NOT JUST ONE!! Will fix this later
-            
-            else:
-                #photParam = {'refStarPos': [[67.0 - 1.0,30.0 - 1.0]],'backStart':49,'backEnd': 50,
-                self.photParam = {'refStarPos': [[1052,57]],'backStart':100,'backEnd': 101,
-                                  'FITSextension': 1,
-                                  'isCube': True,'cubePlane':0,'procFiles':'*.fits'}
-                self.ROEBAmask = None
-        else:
-            self.photParam = None
-            self.ROEBAmask = None
+        self.make_roeba_masks()
+    
+
     
     def get_parameters(self,paramFile,directParam=None):
         if directParam is None:
@@ -171,8 +127,73 @@ class jw(object):
     
         self.all_uncal_files = sorted(all_uncal_files) #sort files alphabetically.
     
-    def test(self):
-        print(test)
+    def make_roeba_masks():
+        """
+        Make masks for Row-by-row, odd-even by amplifier correction (ROEBA)
+        
+        """
+        if self.param['autoROEBAmasks'] == True:
+            firstHead = fits.getheader(self.all_uncal_files[0])
+            firstHead_sci = fits.getheader(self.all_uncal_files[0],extname='SCI')
+            Nx = firstHead_sci['NAXIS1']
+            Ny = firstHead_sci['NAXIS2']
+            if firstHead['PUPIL'] == 'GRISMR':
+                grismsFilterList = ['F322W2','F444W']
+                if firstHead['FILTER'] in grismsFilterList:
+                    self.photParam = None
+                    mask1 = np.ones([Ny,Nx],dtype=bool)
+                    
+                    #mask1[0:4,:] = False
+                    mask1[:,0:4] = False
+                    mask1[:,-4:] = False
+                    if firstHead['FILTER'] == 'F444W':
+                        mask1[22:52,794:2048] = False
+                    elif firstHead['FILTER'] == 'F322W2':
+                        mask1[22:52,50:1780] = False
+                    else:
+                        raise NotImplementedError
+                    
+                    self.ROEBAmask = mask1
+                elif firstHead['FILTER'] == 'F322W2':
+                    self.photParam = None
+                    Nx = firstHead_sci['NAXIS1']
+                    Ny = firstHead_sci['NAXIS2']
+                    mask1 = np.ones([Ny,Nx],dtype=bool)
+                    
+                    #mask1[0:4,:] = False
+                    mask1[:,0:4] = False
+                    mask1[:,-4:] = False
+                    mask1[22:52,794:2048] = False
+                    
+                    self.ROEBAmask = mask1
+                else:
+                    raise NotImplementedError
+            ## NOTE TO SELF: I SHOULD CHECK ALL HEADERS, NOT JUST ONE!! Will fix this later
+            
+            elif firstHead['EXP_TYPE'] == 'NRC_TSIMAGE':
+                if firstHead['PUPIL'] == 'WLP8':
+                    backRadii = [100,101]
+                elif (fitsHead['PUPIL'] == 'CLEAR') & (fitsHead['FILTER'] == 'WLP4'):
+                    backRadii = [49,50]
+                else:
+                    backRadii = [12,13]
+                
+                xLoc = fitsHead['XREF_SCI']
+                yLoc = fitsHead['YREG_SCI']
+                
+                #photParam = {'refStarPos': [[67.0 - 1.0,30.0 - 1.0]],'backStart':49,'backEnd': 50,
+                self.photParam = {'refStarPos': [[xLoc-1,yLoc-1]],'backStart':backRadii[0],'backEnd': backRadii[1],
+                                  'FITSextension': 1,
+                                  'isCube': True,'cubePlane':0,'procFiles':'*.fits'}
+                refpixMask = np.ones([Ny,Nx],dtype=bool)
+                refpixMask[:,0:4] = False
+                refpixMask[:,-4:] = False
+                self.ROEBAmask = refpixMask
+            else:
+                raise Exception("Unrecognized header metadata to create an automatic ROEBA mask")
+        else:
+            self.photParam = None
+            self.ROEBAmask = None
     
     def run_jw(self):
         """

@@ -85,7 +85,7 @@ class jw(object):
                 
         self.get_files()
         
-        self.max_cores = "half"
+        self.max_cores = self.param['maxCores']
         
         self.make_roeba_masks()
     

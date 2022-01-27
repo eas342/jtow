@@ -5,3 +5,4 @@ noutputs: 4
 add_noutputs_keyword: True
 ROEBACorrection: True
 autoROEBAmasks: True
+maxCores: quarter

@@ -173,13 +173,13 @@ class jw(object):
             elif firstHead['EXP_TYPE'] == 'NRC_TSIMAGE':
                 if firstHead['PUPIL'] == 'WLP8':
                     backRadii = [100,101]
-                elif (fitsHead['PUPIL'] == 'CLEAR') & (fitsHead['FILTER'] == 'WLP4'):
+                elif (firstHead['PUPIL'] == 'CLEAR') & (firstHead['FILTER'] == 'WLP4'):
                     backRadii = [49,50]
                 else:
                     backRadii = [12,13]
                 
-                xLoc = fitsHead['XREF_SCI']
-                yLoc = fitsHead['YREG_SCI']
+                xLoc = firstHead_sci['XREF_SCI']
+                yLoc = firstHead_sci['YREF_SCI']
                 
                 #photParam = {'refStarPos': [[67.0 - 1.0,30.0 - 1.0]],'backStart':49,'backEnd': 50,
                 self.photParam = {'refStarPos': [[xLoc-1,yLoc-1]],'backStart':backRadii[0],'backEnd': backRadii[1],

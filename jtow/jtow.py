@@ -127,7 +127,7 @@ class jw(object):
     
         self.all_uncal_files = sorted(all_uncal_files) #sort files alphabetically.
     
-    def make_roeba_masks():
+    def make_roeba_masks(self):
         """
         Make masks for Row-by-row, odd-even by amplifier correction (ROEBA)
         

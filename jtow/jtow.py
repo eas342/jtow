@@ -154,18 +154,7 @@ class jw(object):
                         raise NotImplementedError
                     
                     self.ROEBAmask = mask1
-                elif firstHead['FILTER'] == 'F322W2':
-                    self.photParam = None
-                    Nx = firstHead_sci['NAXIS1']
-                    Ny = firstHead_sci['NAXIS2']
-                    mask1 = np.ones([Ny,Nx],dtype=bool)
-                    
-                    #mask1[0:4,:] = False
-                    mask1[:,0:4] = False
-                    mask1[:,-4:] = False
-                    mask1[22:52,794:2048] = False
-                    
-                    self.ROEBAmask = mask1
+                
                 else:
                     raise NotImplementedError
             ## NOTE TO SELF: I SHOULD CHECK ALL HEADERS, NOT JUST ONE!! Will fix this later

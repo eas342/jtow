@@ -82,7 +82,8 @@ class jw(object):
         for oneKey in defaultParams.keys():
             if oneKey not in self.param:
                 self.param[oneKey] = defaultParams[oneKey]
-                
+        
+        self.set_up_dirs()
         self.get_files()
         
         self.max_cores = self.param['maxCores']
@@ -99,7 +100,21 @@ class jw(object):
             self.paramFile = 'direct dictionary'
             self.param = directParam
         
+    
+    def set_up_dirs(self):
+        """
+        Set up directories
+        """
+        self.output_dir = self.param["outputDir"]
         
+        self.diagnostic_dir = os.path.join(self.param["outputDir"],'diagnostics')
+        
+        ## make sure the directories exist
+        for oneDir in [self.output_dir,self.diagnostic_dir]:
+            if os.path.exists(oneDir) == False:
+                os.makedirs(oneDir)
+        
+    
     def get_files(self):
         
         all_uncal_files = [] 
@@ -111,10 +126,7 @@ class jw(object):
         #rawFileSearch = "/fenrirdata1/es_tso/sim_data/mirage_029_hd189733b_transit/raw/*nrca1_uncal.fits"
         #rawFileSearch = "/fenrirdata1/es_tso/sim_data/mirage_037_hatp14_lower_well_frac/raw/*nrca3_uncal.fits"
         #output_dir = "/fenrirdata1/es_tso/sim_data/mirage_037_hatp14_lower_well_frac/proc_roeba_nrca3"
-        
-        self.output_dir = self.param["outputDir"]
-        if os.path.exists(self.output_dir) == False:
-            os.makedirs(self.output_dir)
+
         
         rawList = np.sort(glob.glob(self.param['rawFileSearch']))
         
@@ -183,6 +195,19 @@ class jw(object):
         else:
             self.photParam = None
             self.ROEBAmask = None
+    
+    def save_roeba_masks(self):
+        """
+        Save the background mask used by ROEBA
+        """
+        if self.ROEBAmask is None:
+            print("No ROEBA mask found, nothing to save")
+        else:
+            primHDU = fits.PrimaryHDU(np.array(self.ROEBAmask,dtype=int))
+            outPath = os.path.join(self.diagnostic_dir,'roeba_mask.fits')
+            print("Saving ROEBA mask to {}".format(outPath))
+            primHDU.writeto(outPath,overwrite=True)
+            
     
     def run_jw(self):
         """

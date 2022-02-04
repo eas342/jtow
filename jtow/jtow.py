@@ -149,7 +149,13 @@ class jw(object):
             firstHead_sci = fits.getheader(self.all_uncal_files[0],extname='SCI')
             Nx = firstHead_sci['NAXIS1']
             Ny = firstHead_sci['NAXIS2']
-            if firstHead['PUPIL'] == 'GRISMR':
+            
+            if self.param['ROEBAmaskfromRate'] != None:
+                rateDat = fits.getdata(self.param['ROEBAmaskfromRate'])
+                self.photParam = None
+                self.ROEBAmask = (rateDat < self.param['ROEBAmaskfromRateThreshold'])
+            
+            elif firstHead['PUPIL'] == 'GRISMR':
                 grismsFilterList = ['F322W2','F444W']
                 if firstHead['FILTER'] in grismsFilterList:
                     self.photParam = None

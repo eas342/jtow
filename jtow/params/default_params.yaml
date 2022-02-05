@@ -8,3 +8,5 @@ autoROEBAmasks: True
 maxCores: quarter
 ROEBAmaskfromRate: null
 ROEBAmaskfromRateThreshold: 0.5 # DN/s
+custBias: null
+saveBiasStep: False

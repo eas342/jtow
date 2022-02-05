@@ -237,8 +237,15 @@ class jw(object):
     
             # Using the run() method
             superbias_step = SuperBiasStep()
-            # superbias_step.output_dir = output_dir
-            # superbias_step.save_results = True
+            
+            if self.param['custBias'] is None:
+                pass
+            else:
+                superbias_step.override_superbias = self.param['custBias']
+            
+            if self.param['saveBiasStep'] == True:
+                superbias_step.output_dir = self.output_dir
+                superbias_step.save_results = True
     
             # Call using the the output from the previously-run saturation step
             superbias = superbias_step.run(saturation)

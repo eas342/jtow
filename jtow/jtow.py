@@ -251,8 +251,9 @@ class jw(object):
             superbias = superbias_step.run(saturation)
             del saturation ## try to save memory
     
-    
-
+            if self.param['saveROEBAdiagnostics'] == True:
+                self.save_roeba_mask()
+            
             
             if self.param['ROEBACorrection'] == True:
                 # try using a copy of the bias results as the refpix output
@@ -284,14 +285,15 @@ class jw(object):
                 # Everything inside the larger blue circle will be masked when doing reference pixel corrections
     
                 # In[391]:
-    
-    
+                
+                
                 for oneInt in tqdm.tqdm(np.arange(nints)):
                     for oneGroup in np.arange(ngroups):
             
                         rowSub, modelImg = rowamp_sub.do_backsub(superbias.data[oneInt,oneGroup,:,:],
                                                                  phot,
-                                                                 backgMask=self.ROEBAmask)
+                                                                 backgMask=self.ROEBAmask,
+                                                                 saveDiagnostics=self.param['saveROEBAdiagnostics'])
                         refpix_res.data[oneInt,oneGroup,:,:] = rowSub
                 
                 # # Linearity Step

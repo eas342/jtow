@@ -10,3 +10,4 @@ ROEBAmaskfromRate: null
 ROEBAmaskfromRateThreshold: 0.5 # DN/s
 custBias: null
 saveBiasStep: False
+saveROEBAdiagnostics: False

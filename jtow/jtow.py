@@ -252,7 +252,7 @@ class jw(object):
             del saturation ## try to save memory
     
             if self.param['saveROEBAdiagnostics'] == True:
-                self.save_roeba_mask()
+                self.save_roeba_masks()
             
             
             if self.param['ROEBACorrection'] == True:

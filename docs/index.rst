@@ -7,6 +7,7 @@ Welcome to jtow's documentation!
 
    readme
    installation
+   parameters
    usage
    modules
    contributing

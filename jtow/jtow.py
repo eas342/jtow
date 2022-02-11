@@ -240,15 +240,31 @@ class jw(object):
             
             if self.param['custBias'] is None:
                 pass
+            elif self.param['custBias'] == 'selfBias':
+                superbias_step.skip = True
+                saturation.data = saturation.data - saturation.data[0][0]
             else:
                 superbias_step.override_superbias = self.param['custBias']
             
             if self.param['saveBiasStep'] == True:
                 superbias_step.output_dir = self.output_dir
                 superbias_step.save_results = True
+                if self.param['custBias'] == 'selfBias':
+                    ## Have to save it manually if this step is skipped because of self bias subtraction
+                    origName = saturation.meta.filename
+                    if '_uncal.fits' in origName:
+                        outName = origName.replace('_uncal.fits','_superbiasstep.fits')
+                    else:
+                        outName = 'cust_superbiasstep.fits'
+                    
+                    outPath = os.path.join(self.output_dir,outName)
+                    saturation.to_fits(outPath,overwrite=True)
+                
     
             # Call using the the output from the previously-run saturation step
             superbias = superbias_step.run(saturation)
+            
+            
             del saturation ## try to save memory
     
             if self.param['saveROEBAdiagnostics'] == True:
@@ -299,7 +315,15 @@ class jw(object):
                 # # Linearity Step
     
                 # In[328]:
+                if self.param['saveROEBAdiagnostics'] == True:
+                    origName = deepcopy(refpix_res.meta.filename)
+                    if '.fits' in origName:
+                        outName = origName.replace('.fits','_refpixstep.fits')
+                    else:
+                        outName = 'ROEBAstep.fits'
                 
+                    outPath = os.path.join(self.output_dir,outName)
+                    refpix_res.to_fits(outPath,overwrite=True)
                 
                 
             else:

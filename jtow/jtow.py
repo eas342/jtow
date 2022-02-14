@@ -375,7 +375,7 @@ class jw(object):
             jump_step = JumpStep()
             #jump_step.output_dir = output_dir
             #jump_step.save_results = True
-            jump_step.rejection_threshold = 15
+            jump_step.rejection_threshold = self.param['jumpRejectionThreshold']
 
             jump_step.maximum_cores = self.max_cores
             # Call using the dark instance from the previously-run

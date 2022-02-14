@@ -24,3 +24,7 @@ Here are some descriptions of what the parameters do.
 
 * :code:`True` saves the source mask used for ROEBA and the step immediately following ROEBA correction (full ramp with all integrations).
 * :code:`False` does not save these images.
+
+:code:`jumpRejectionThreshold`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:code:`jumpRejectionThreshold` sets the sigma rejection threshold for the JWST jump step to detect cosmic rays

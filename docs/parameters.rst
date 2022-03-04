@@ -28,3 +28,8 @@ Here are some descriptions of what the parameters do.
 :code:`jumpRejectionThreshold`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 :code:`jumpRejectionThreshold` sets the sigma rejection threshold for the JWST jump step to detect cosmic rays
+
+:code:`ROEBAmaskGrowthSize`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:code:`ROEBAmaskGrowthSize` sets the size (in pixels) of how large a smoothing kernel should be used to grow the ROEBA mask.
+This allows the mask to go into faint wings of the image

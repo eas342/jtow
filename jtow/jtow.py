@@ -23,11 +23,9 @@ import astropy.units as u
 import glob
 import time
 import yaml
-
 import pdb
-
+from scipy import ndimage
 from copy import deepcopy
-
 import pkg_resources
 
 # Individual steps that make up calwebb_detector1
@@ -86,6 +84,8 @@ class jw(object):
         self.set_up_dirs()
         self.get_files()
         
+        self.make_descrip()
+        
         self.max_cores = self.param['maxCores']
         
         self.make_roeba_masks()
@@ -139,6 +139,13 @@ class jw(object):
     
         self.all_uncal_files = sorted(all_uncal_files) #sort files alphabetically.
     
+    def make_descrip(self):
+        """
+        Make a description for diagnostics and saving info
+        """
+        self.firstUncal = os.path.basename(self.all_uncal_files[0])
+        self.descrip = self.firstUncal.replace('_uncal.fits','')
+    
     def make_roeba_masks(self):
         """
         Make masks for Row-by-row, odd-even by amplifier correction (ROEBA)
@@ -151,10 +158,16 @@ class jw(object):
             Ny = firstHead_sci['NAXIS2']
             
             if self.param['ROEBAmaskfromRate'] != None:
-                rateDat = fits.getdata(self.param['ROEBAmaskfromRate'])
+                HDUList = fits.open(self.param['ROEBAmaskfromRate'])
+                rateDat = HDUList['SCI'].data
+                
                 self.photParam = None
-                self.ROEBAmask = (rateDat < self.param['ROEBAmaskfromRateThreshold'])
-            
+                ROEBAmask = (rateDat < self.param['ROEBAmaskfromRateThreshold'])
+                
+                self.bad_dq_mask = HDUList['DQ'].data > 0
+                
+                HDUList.close()
+                
             elif firstHead['PUPIL'] == 'GRISMR':
                 grismsFilterList = ['F322W2','F444W']
                 if firstHead['FILTER'] in grismsFilterList:
@@ -171,7 +184,9 @@ class jw(object):
                     else:
                         raise NotImplementedError
                     
-                    self.ROEBAmask = mask1
+                    ROEBAmask = mask1
+                
+                    self.bad_dq_mask = np.zeros_like(ROEBAmask,dtype=bool)
                 
                 else:
                     raise NotImplementedError
@@ -195,12 +210,71 @@ class jw(object):
                 refpixMask = np.ones([Ny,Nx],dtype=bool)
                 refpixMask[:,0:4] = False
                 refpixMask[:,-4:] = False
-                self.ROEBAmask = refpixMask
+                ROEBAmask = refpixMask
+                
+                self.bad_dq_mask = np.zeros_like(ROEBAmask,dtype=bool)
             else:
                 raise Exception("Unrecognized header metadata to create an automatic ROEBA mask")
         else:
             self.photParam = None
-            self.ROEBAmask = None
+            ROEBAmask = None
+            self.bad_dq_mask = None
+        
+        if (self.param['ROEBAmaskGrowthSize'] is None) | (ROEBAmask is None):
+            self.ROEBAmask = ROEBAmask
+        else:
+            self.ROEBAmask = self.grow_mask(ROEBAmask)
+            
+        if self.param['saveROEBAdiagnostics'] == True:
+            self.save_roeba_masks()
+    
+    def save_diagnostic_img(self,diagnostic_img,suffix):
+        """
+        Save a diagnostic file
+        """
+        primHDU = fits.PrimaryHDU(np.array(diagnostic_img,dtype=int))
+        outPath = os.path.join(self.diagnostic_dir,'{}_{}.fits'.format(self.descrip,suffix))
+        print("Saving {} to {}".format(suffix,outPath))
+        primHDU.writeto(outPath,overwrite=True)
+        
+        del primHDU
+    
+    def grow_mask(self,img):
+        """
+        Grow the mask to extend into the wings
+        
+        Parameters
+        ----------
+        img: numpy 2D array
+            Mask image to be grown
+        """
+        ## construct a round tophat kernel, rounded to the nearest pixel
+        growth_r = self.param['ROEBAmaskGrowthSize']
+        ksize = int(growth_r * 2 + 4)
+        y, x= np.mgrid[0:ksize,0:ksize]
+        midptx = ksize/2. - 0.5
+        midpty = midptx
+        r = np.sqrt(((x-midptx)**2 + (y-midpty)**2))
+        k = r < growth_r
+        
+        if self.param['saveROEBAdiagnostics'] == True:
+            self.save_diagnostic_img(k,'roeba_mask_growth_kernel')
+            self.save_diagnostic_img(img,'roeba_mask_before_growth')
+            
+        
+        ## the source pixels are 0 = False, so we want to grow those
+        ## but don't grow the bad pixels
+        arr_to_convolve = (img == 0) & (self.bad_dq_mask == False)
+        grown = (ndimage.convolve(np.array(arr_to_convolve,dtype=int), k, mode='constant', cval=0.0))
+        
+        # Now that we've grown the source pixels, we want to find the background pixels again
+        # Maybe the mask should have been with the source=True, background=True from the start
+        #, but this is the way it works currently (2022-03-03)
+        # Have to add the bad DQ mask back in
+        finalROEBAmask = (grown == 0) & self.bad_dq_mask
+        
+        return (grown == 0) 
+        
     
     def save_roeba_masks(self):
         """
@@ -209,10 +283,7 @@ class jw(object):
         if self.ROEBAmask is None:
             print("No ROEBA mask found, nothing to save")
         else:
-            primHDU = fits.PrimaryHDU(np.array(self.ROEBAmask,dtype=int))
-            outPath = os.path.join(self.diagnostic_dir,'roeba_mask.fits')
-            print("Saving ROEBA mask to {}".format(outPath))
-            primHDU.writeto(outPath,overwrite=True)
+            self.save_diagnostic_img(self.ROEBAmask,'roeba_mask')
             
     
     def run_jw(self):
@@ -226,8 +297,8 @@ class jw(object):
                 # Using the run() method. Instantiate and set parameters
             dq_init_step = DQInitStep()
             dq_init = dq_init_step.run(uncal_file)
-    
-    
+            
+            
             # ## Saturation Flagging
             # Using the run() method
             saturation_step = SaturationStep()
@@ -266,9 +337,6 @@ class jw(object):
             
             
             del saturation ## try to save memory
-    
-            if self.param['saveROEBAdiagnostics'] == True:
-                self.save_roeba_masks()
             
             
             if self.param['ROEBACorrection'] == True:

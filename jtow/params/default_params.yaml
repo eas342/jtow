@@ -2,7 +2,7 @@ rawFileSearch: /Users/everettschlawin/es_programs/mirage_runs/mirage_output_009_
 outputDir: /Users/everettschlawin/Documents/jwst/ers/sim_data/proc_files
 photParam: null
 noutputs: 4
-add_noutputs_keyword: True
+add_noutputs_keyword: False
 ROEBACorrection: True
 autoROEBAmasks: True
 maxCores: quarter
@@ -12,3 +12,4 @@ custBias: null
 saveBiasStep: False
 saveROEBAdiagnostics: False
 jumpRejectionThreshold: 15.0
+ROEBAgrowthMask: null

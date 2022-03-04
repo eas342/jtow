@@ -248,6 +248,7 @@ class jw(object):
         img: numpy 2D array
             Mask image to be grown
         """
+        
         ## construct a round tophat kernel, rounded to the nearest pixel
         growth_r = self.param['ROEBAmaskGrowthSize']
         ksize = int(growth_r * 2 + 4)
@@ -260,7 +261,8 @@ class jw(object):
         if self.param['saveROEBAdiagnostics'] == True:
             self.save_diagnostic_img(k,'roeba_mask_growth_kernel')
             self.save_diagnostic_img(img,'roeba_mask_before_growth')
-            
+        
+        ## Keep in mind, the source=False and Backg=True (as of 2022-03-03)
         
         ## the source pixels are 0 = False, so we want to grow those
         ## but don't grow the bad pixels
@@ -268,12 +270,13 @@ class jw(object):
         grown = (ndimage.convolve(np.array(arr_to_convolve,dtype=int), k, mode='constant', cval=0.0))
         
         # Now that we've grown the source pixels, we want to find the background pixels again
-        # Maybe the mask should have been with the source=True, background=True from the start
+        # Maybe the mask should have been with the source=False, background=True from the start
         #, but this is the way it works currently (2022-03-03)
-        # Have to add the bad DQ mask back in
-        finalROEBAmask = (grown == 0) & self.bad_dq_mask
+        initialROEBAmask = (grown == 0)
+        # Have to add the original bad DQ mask in
+        finalROEBAmask = initialROEBAmask & (img > 0)
         
-        return (grown == 0) 
+        return finalROEBAmask 
         
     
     def save_roeba_masks(self):

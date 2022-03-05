@@ -12,4 +12,4 @@ custBias: null
 saveBiasStep: False
 saveROEBAdiagnostics: False
 jumpRejectionThreshold: 15.0
-ROEBAgrowthMask: null
+ROEBAmaskGrowthSize: null

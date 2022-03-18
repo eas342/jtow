@@ -54,10 +54,12 @@ class auto_jtow(object):
             rateThreshold = 5.
         else:
             err_est = fits.getdata(rate_file,extname='ERR')
+            rate_img = fits.getdata(rate_file,extname='SCI')
             valid_pt = np.isfinite(err_est)
             nonzero = err_est[valid_pt] > 0
             
-            rateThreshold = 5. * np.min(err_est[valid_pt][nonzero])
+            backg = np.nanmedian(rate_img)
+            rateThreshold = 5. * np.min(err_est[valid_pt][nonzero]) + backg
             
         return rateThreshold
         

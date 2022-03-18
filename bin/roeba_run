@@ -13,7 +13,6 @@ parser.add_argument('inFile', metavar='F', type=str,
 
 args = parser.parse_args()
 
-print("Hello")
 
 auto_jtow.run_auto_jtow(searchString=args.inFile)
 #

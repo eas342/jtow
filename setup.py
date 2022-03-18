@@ -36,7 +36,7 @@ setup(
     include_package_data=True,
     keywords='jtow',
     name='jtow',
-    scripts=scripts=['bin/roeba_run'],
+    scripts=['bin/roeba_run'],
     packages=find_packages(include=['jtow', 'jtow.*']),
     test_suite='tests',
     tests_require=test_requirements,

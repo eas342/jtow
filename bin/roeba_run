@@ -1,0 +1,19 @@
+import sys
+from jtow import auto_jtow
+import argparse
+import pdb
+
+parser = argparse.ArgumentParser(description='Run ROEBA correction.')
+parser.add_argument('inFile', metavar='F', type=str,
+                    help='The input file. Or, in quotes a wildcard search for files')
+# parser.add_argument('--outDir', default='.',
+#                     help='The output directory')
+#
+
+args = parser.parse_args()
+
+
+aj = auto_jtow.auto_jtow(args.inFile)
+
+aj.run_jtow()
+

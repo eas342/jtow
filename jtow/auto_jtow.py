@@ -13,20 +13,20 @@ defaultParamPath = pkg_resources.resource_filename('jtow',path_to_defaults)
 defaultParam = jtow.read_yaml(defaultParamPath)
 
 class auto_jtow(object):
-    def __init__(self,searchList):
+    def __init__(self,searchString):
         """
         An object to run an automatic pipeline wrapper run
         
         """
-        self.gather_files(searchList)
+        self.gather_files(searchString)
         
 
     
-    def gather_files(self,searchList):
+    def gather_files(self,searchString):
         """
         Gather the files to run jtow on
         """
-        self.fileList = np.sort(glob.glob(searchList))
+        self.fileList = np.sort(glob.glob(searchString))
         
         if len(self.fileList) == 0:
             warnings.warn("No files found at {}".format(searchList))
@@ -79,6 +79,7 @@ class auto_jtow(object):
         directParam['custBias'] = 'selfBias' ## for now until a good set is prepped
         directParam['jumpRejectionThreshold'] = 3.0
         directParam['ROEBAmaskGrowthSize'] = 15
+        directParam['maxCores'] = 'none'
         
         return directParam
     
@@ -92,3 +93,9 @@ class auto_jtow(object):
     def run_jtow_one(self,directParam):
         jw = jtow.jw(directParam=directParam)
         jw.run_jw()
+
+def run_auto_jtow(searchString):
+    aj = auto_jtow(searchString)
+    aj.run_jtow()
+    
+    

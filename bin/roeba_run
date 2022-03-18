@@ -1,3 +1,4 @@
+#!/Users/everettschlawin/miniconda3/envs/m1py3p8/bin/python
 import sys
 from jtow import auto_jtow
 import argparse
@@ -12,8 +13,8 @@ parser.add_argument('inFile', metavar='F', type=str,
 
 args = parser.parse_args()
 
+print("Hello")
 
-aj = auto_jtow.auto_jtow(args.inFile)
-
-aj.run_jtow()
-
+auto_jtow.run_auto_jtow(searchString=args.inFile)
+#
+# pdb.set_trace()

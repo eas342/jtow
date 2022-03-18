@@ -41,6 +41,7 @@ from jwst.jump import JumpStep
 from jwst.ramp_fitting import RampFitStep
 from jwst import datamodels
 
+import warnings
 
 # In[359]:
 
@@ -233,7 +234,18 @@ class jw(object):
             self.ROEBAmask = ROEBAmask
         else:
             self.ROEBAmask = self.grow_mask(ROEBAmask)
+        
+        if self.ROEBAmask is None:
+            pass
+        else:
+            self.good_rows = np.sum(np.sum(self.ROEBAmask,axis=1) >= 4)
             
+            if self.good_rows != self.ROEBAmask.shape[0]:
+                warnMessage = 'final ROEBA mask has too few rows to fit for {}. Setting it to None'.format(self.descrip)
+                print(warnMessage)
+                warnings.warn(warnMessage)
+                self.ROEBAmask = None
+        
         self.save_roeba_masks()
         
     
@@ -284,6 +296,7 @@ class jw(object):
         initialROEBAmask = (grown == 0)
         # Have to add the original bad DQ mask in
         finalROEBAmask = initialROEBAmask & (img > 0)
+        
         
         return finalROEBAmask 
         

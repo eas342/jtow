@@ -36,10 +36,11 @@ setup(
     include_package_data=True,
     keywords='jtow',
     name='jtow',
+    scripts=scripts=['bin/roeba_run'],
     packages=find_packages(include=['jtow', 'jtow.*']),
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/eas342/jtow',
-    version='0.1.1',
+    version='0.1.2',
     zip_safe=False,
 )

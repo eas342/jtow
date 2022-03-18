@@ -62,11 +62,12 @@ class auto_jtow(object):
             valid_pt = np.isfinite(err_est)
             nonzero = err_est[valid_pt] > 0
             
-            backg = np.nanmedian(rate_img)
+            self.backg_est = np.nanmedian(rate_img)
+            self.err_est = np.min(err_est[valid_pt][nonzero])
             if self.iteration == 1:
-                rateThreshold = 5. * np.min(err_est[valid_pt][nonzero]) + backg
+                rateThreshold = 5. * self.err_est + self.backg_est
             else:
-                rateThreshold = 3. * np.min(err_est[valid_pt][nonzero])
+                rateThreshold = 7. * self.err_est
             
         return rateThreshold
         

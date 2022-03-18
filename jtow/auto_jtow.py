@@ -105,7 +105,8 @@ class auto_jtow(object):
         jw.run_jw()
 
 def run_auto_jtow(searchString):
-    aj = auto_jtow(searchString)
-    aj.run_jtow()
+    for iteration in [1,2]:
+        aj = auto_jtow(searchString,iteration=iteration)
+        aj.run_jtow()
     
     

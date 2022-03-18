@@ -100,6 +100,9 @@ class jw(object):
             self.paramFile = 'direct dictionary'
             self.param = directParam
         
+        if self.param['add_noutputs_keyword'] == True:
+            warnings.warn("This code will modify the uncal file NOUTPUTS. This is DANGEROUS. Only use for older mirage simulations that lacked NOUTPUTS keyword")
+        
     
     def set_up_dirs(self):
         """
@@ -131,10 +134,11 @@ class jw(object):
         rawList = np.sort(glob.glob(self.param['rawFileSearch']))
         
         for fitsName in rawList: #Grabbing only these files from the directory
-        
-            HDUList = fits.open(fitsName, 'update')
-            HDUList[0].header['NOUTPUTS'] = (4, 'Number of output amplifiers') #This was not input at the time of the simulation. Therefore, we manually must input this information.
-            HDUList.close()
+            if self.param['add_noutputs_keyword'] = True
+                HDUList = fits.open(fitsName, 'update')
+                #This was not input at the time of the simulation. Therefore, we manually must input this information.
+                HDUList[0].header['NOUTPUTS'] = (self.param['noutputs'], 'Number of output amplifiers') 
+                HDUList.close()
             all_uncal_files.append(fitsName)
     
         self.all_uncal_files = sorted(all_uncal_files) #sort files alphabetically.
@@ -156,6 +160,11 @@ class jw(object):
             firstHead_sci = fits.getheader(self.all_uncal_files[0],extname='SCI')
             Nx = firstHead_sci['NAXIS1']
             Ny = firstHead_sci['NAXIS2']
+            if self.param['noutputs'] is None:
+                if 'NOUTPUTS' in firstHead:
+                    self.param['noutputs'] = firstHead['NOUTPUTS']
+                else:
+                    raise Exception("NOUTPUTS not found in first header. Try setting it manually with noutputs")
             
             if self.param['ROEBAmaskfromRate'] != None:
                 HDUList = fits.open(self.param['ROEBAmaskfromRate'])
@@ -227,6 +236,7 @@ class jw(object):
             
         if self.param['saveROEBAdiagnostics'] == True:
             self.save_roeba_masks()
+        
     
     def save_diagnostic_img(self,diagnostic_img,suffix):
         """
@@ -378,7 +388,7 @@ class jw(object):
                     for oneGroup in np.arange(ngroups):
             
                         rowSub, modelImg = rowamp_sub.do_backsub(superbias.data[oneInt,oneGroup,:,:],
-                                                                 phot,
+                                                                 phot,amplifiers=self.param['noutputs'],
                                                                  backgMask=self.ROEBAmask,
                                                                  saveDiagnostics=self.param['saveROEBAdiagnostics'])
                         refpix_res.data[oneInt,oneGroup,:,:] = rowSub

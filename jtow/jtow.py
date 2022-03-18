@@ -134,7 +134,7 @@ class jw(object):
         rawList = np.sort(glob.glob(self.param['rawFileSearch']))
         
         for fitsName in rawList: #Grabbing only these files from the directory
-            if self.param['add_noutputs_keyword'] = True
+            if self.param['add_noutputs_keyword'] == True:
                 HDUList = fits.open(fitsName, 'update')
                 #This was not input at the time of the simulation. Therefore, we manually must input this information.
                 HDUList[0].header['NOUTPUTS'] = (self.param['noutputs'], 'Number of output amplifiers') 
@@ -234,8 +234,7 @@ class jw(object):
         else:
             self.ROEBAmask = self.grow_mask(ROEBAmask)
             
-        if self.param['saveROEBAdiagnostics'] == True:
-            self.save_roeba_masks()
+        self.save_roeba_masks()
         
     
     def save_diagnostic_img(self,diagnostic_img,suffix):

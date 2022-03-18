@@ -22,7 +22,7 @@ Here are some descriptions of what the parameters do.
 
 :code:`saveROEBAdiagnostics` saves diagnostics from row-by-row, odd/even by amplifier (ROEBA) correction.
 
-* :code:`True` saves the source mask used for ROEBA and the step immediately following ROEBA correction (full ramp with all integrations).
+* :code:`True` saves the step immediately following ROEBA correction (full ramp with all integrations). If growing the mask with a kernel, it also saves the growth kernel and before/after growth.
 * :code:`False` does not save these images.
 
 :code:`jumpRejectionThreshold`

@@ -286,8 +286,11 @@ class jw(object):
         ## Keep in mind, the source=False and Backg=True (as of 2022-03-03)
         
         ## the source pixels are 0 = False, so we want to grow those
-        ## but don't grow the bad pixels
-        arr_to_convolve = (img == 0) & (self.bad_dq_mask == False)
+        ## but don't grow the bad pixels or isolated pixels
+        border = np.array([[1,1,1],[1,0,1],[1,1,1]])
+        has_neighbors = ndimage.convolve(np.array(img == 0),border,mode='constant',cval=0.0)
+        
+        arr_to_convolve = (img == 0) & (self.bad_dq_mask == False) & has_neighbors
         grown = (ndimage.convolve(np.array(arr_to_convolve,dtype=int), k, mode='constant', cval=0.0))
         
         # Now that we've grown the source pixels, we want to find the background pixels again

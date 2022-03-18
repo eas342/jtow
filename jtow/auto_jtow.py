@@ -29,7 +29,7 @@ class auto_jtow(object):
         self.fileList = np.sort(glob.glob(searchString))
         
         if len(self.fileList) == 0:
-            warnings.warn("No files found at {}".format(searchList))
+            warnings.warn("No files found at {}".format(searchString))
     
     def find_rate_file(self,oneFile):
         """

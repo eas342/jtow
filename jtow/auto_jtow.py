@@ -13,13 +13,13 @@ defaultParamPath = pkg_resources.resource_filename('jtow',path_to_defaults)
 defaultParam = jtow.read_yaml(defaultParamPath)
 
 class auto_jtow(object):
-    def __init__(self,searchString):
+    def __init__(self,searchString,iteration=1):
         """
         An object to run an automatic pipeline wrapper run
         
         """
         self.gather_files(searchString)
-        
+        self.iteration = iteration
 
     
     def gather_files(self,searchString):
@@ -35,7 +35,11 @@ class auto_jtow(object):
         """
         Find the default rate file but check if it exists
         """
-        rate_file_guess = oneFile.replace('_uncal.fits','_rate.fits')
+        if self.iteration == 1:
+            rate_file_guess = oneFile.replace('_uncal.fits','_rate.fits')
+        else:
+            rate_file_guess = oneFile.replace('_uncal.fits','_0_rampfitstep.fits')
+        
         if os.path.exists(rate_file_guess):
             rate_file = rate_file_guess
         else:
@@ -59,7 +63,10 @@ class auto_jtow(object):
             nonzero = err_est[valid_pt] > 0
             
             backg = np.nanmedian(rate_img)
-            rateThreshold = 5. * np.min(err_est[valid_pt][nonzero]) + backg
+            if self.iteration == 1:
+                rateThreshold = 5. * np.min(err_est[valid_pt][nonzero]) + backg
+            else:
+                rateThreshold = 3. * np.min(err_est[valid_pt][nonzero])
             
         return rateThreshold
         

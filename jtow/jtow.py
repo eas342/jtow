@@ -233,7 +233,16 @@ class jw(object):
         if (self.param['ROEBAmaskGrowthSize'] is None) | (ROEBAmask is None):
             self.ROEBAmask = ROEBAmask
         else:
-            self.ROEBAmask = self.grow_mask(ROEBAmask)
+            grown_mask = self.grow_mask(ROEBAmask)
+            good_rows = np.sum(np.sum(self.ROEBAmask,axis=1) >= 4)
+            
+            if good_rows != self.ROEBAmask.shape[0]:
+                warnMessage = 'grown ROEBA mask has too few rows to fit for {}. Skipping the growth'.format(self.descrip)
+                print(warnMessage)
+                warnings.warn(warnMessage)
+                self.ROEBAmask = ROEBAmask
+            else:
+                self.ROEBAmask = grown_mask
         
         if self.ROEBAmask is None:
             pass

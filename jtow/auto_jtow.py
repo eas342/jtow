@@ -104,8 +104,8 @@ class auto_jtow(object):
         jw = jtow.jw(directParam=directParam)
         jw.run_jw()
 
-def run_auto_jtow(searchString):
-    for iteration in [1,2]:
+def run_auto_jtow(searchString,iterations=1):
+    for iteration in np.arange(iterations) + 1:
         aj = auto_jtow(searchString,iteration=iteration)
         aj.run_jtow()
     

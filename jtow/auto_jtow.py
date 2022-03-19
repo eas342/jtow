@@ -87,7 +87,7 @@ class auto_jtow(object):
         directParam['ROEBAmaskfromRate'] = self.find_rate_file(oneFile)
         directParam['ROEBAmaskfromRateThreshold'] = self.get_roeba_threshold(self.rate_file)
         directParam['custBias'] = 'selfBias' ## for now until a good set is prepped
-        directParam['jumpRejectionThreshold'] = 3.0
+        directParam['jumpRejectionThreshold'] = 6.0
         directParam['ROEBAmaskGrowthSize'] = 15
         directParam['maxCores'] = 'none'
         

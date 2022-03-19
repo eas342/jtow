@@ -67,7 +67,7 @@ class auto_jtow(object):
             if self.iteration == 1:
                 rateThreshold = 5. * self.err_est + self.backg_est * 1.3
             else:
-                rateThreshold = 7. * self.err_est
+                rateThreshold = 12. * self.err_est
             
         return rateThreshold
         

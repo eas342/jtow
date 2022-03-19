@@ -7,7 +7,7 @@ import pdb
 parser = argparse.ArgumentParser(description='Run ROEBA correction.')
 parser.add_argument('inFile', metavar='F', type=str,
                     help='The input file. Or, in quotes a wildcard search for files')
-parser.add_argument('--iterations', metavar='I', type=int, const=1, default=1,
+parser.add_argument('--iterations', metavar='I', type=int, default=1,
                     help='How many iterations of stage 1 to run to update background mask.')
 # parser.add_argument('--outDir', default='.',
 #                     help='The output directory')

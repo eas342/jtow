@@ -65,7 +65,7 @@ class auto_jtow(object):
             self.backg_est = np.nanmedian(rate_img)
             self.err_est = np.min(err_est[valid_pt][nonzero])
             if self.iteration == 1:
-                rateThreshold = 5. * self.err_est + self.backg_est
+                rateThreshold = 5. * self.err_est + self.backg_est * 1.3
             else:
                 rateThreshold = 7. * self.err_est
             

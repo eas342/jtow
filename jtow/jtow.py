@@ -250,10 +250,11 @@ class jw(object):
             self.good_rows = np.sum(np.sum(self.ROEBAmask,axis=1) >= 4)
             
             if self.good_rows != self.ROEBAmask.shape[0]:
-                warnMessage = 'final ROEBA mask has too few rows to fit for {}. Setting it to None'.format(self.descrip)
+                warnMessage = 'final ROEBA mask has too few rows to fit for {}. Setting it to None and turning off ROEBA'.format(self.descrip)
                 print(warnMessage)
                 warnings.warn(warnMessage)
                 self.ROEBAmask = None
+                self.param['ROEBACorrection'] = False
         
         self.save_roeba_masks()
         

@@ -25,4 +25,6 @@ To run ROEBA (row-by-row, odd/even, by amplifier) corrections to reduce 1/f nois
 
    roeba_run "*_uncal.fits"
 
-Help on the command line utility.
+
+More documentation to come!
+

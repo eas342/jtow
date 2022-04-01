@@ -158,5 +158,9 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+# Explicitly set the version of Python and its requirements
+python:
+  install:
+    - requirements: docs/requirements.txt
 
 

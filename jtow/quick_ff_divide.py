@@ -59,6 +59,6 @@ def quick_ff_divide(searchPath):
         HDUList['SCI'].data = HDUList['SCI'].data / subFlat
         badpt = (HDUList['DQ'].data & 2**0)
         HDUList['SCI'].data[badpt] = np.nan
-        HDUList.writeto(outPath)
+        HDUList.writeto(outPath,overwrite=True)
         HDUList.close()
     

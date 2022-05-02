@@ -33,7 +33,12 @@ def quick_ff_divide(searchPath):
         
         nc_path = os.path.join(os.environ['CRDS_PATH'],'references','jwst','nircam')
         if (head['DETECTOR'] == 'NRCALONG') & ("GRISM" in head['PUPIL']):
-            flatName = 'jwst_nircam_flat_0313.fits'
+            if head['FILTER'] == 'F444W':
+                flatName = 'jwst_nircam_flat_0313.fits'
+            elif head['FILTER'] == 'F322W2':
+                flatName = 'jwst_nircam_flat_0266.fits'
+            else:
+                raise NotImplementedError("Have to add this filter {}".format(head['FILTER']))
         else:
             recs = crds.getrecommendations(head)
             flatName = recs['flat']

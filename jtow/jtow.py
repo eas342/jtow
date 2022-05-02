@@ -190,7 +190,7 @@ class jw(object):
                     if firstHead['FILTER'] == 'F444W':
                         mask1[12:57,794:2048] = False
                     elif firstHead['FILTER'] == 'F322W2':
-                        mask1[12:57,28:1794] = False
+                        mask1[12:57,0:1846] = False
                     else:
                         raise NotImplementedError
                     

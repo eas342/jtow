@@ -177,7 +177,9 @@ class jw(object):
                 self.bad_dq_mask = HDUList['DQ'].data > 0
                 
                 HDUList.close()
-                
+            elif self.param['photParam'] != None:
+                self.photParam = self.param['photParam']
+                ROEBAmask = None
             elif firstHead['PUPIL'] == 'GRISMR':
                 grismsFilterList = ['F322W2','F444W']
                 if firstHead['FILTER'] in grismsFilterList:
@@ -484,6 +486,13 @@ class jw(object):
             jump_step.rejection_threshold = self.param['jumpRejectionThreshold']
 
             jump_step.maximum_cores = self.max_cores
+            
+            if self.param['saveJumpStep'] == True:
+                jump_step.output_dir = self.output_dir
+                jump_step.save_results = True
+            else:
+                pass
+            
             # Call using the dark instance from the previously-run
             # dark current subtraction step
             jump = jump_step.run(dark)

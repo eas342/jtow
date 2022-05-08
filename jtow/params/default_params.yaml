@@ -14,3 +14,5 @@ saveROEBAdiagnostics: False
 jumpRejectionThreshold: 15.0
 ROEBAmaskGrowthSize: null
 saveJumpStep: False
+biasCycle: ['A','B','B','B']
+biasCycleSearch: null

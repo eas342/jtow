@@ -90,7 +90,9 @@ class jw(object):
         self.max_cores = self.param['maxCores']
         
         self.make_roeba_masks()
-    
+        
+        if self.param['custBias'] == 'cycleBias':
+            self.check_biasCycle()
 
     
     def get_parameters(self,paramFile,directParam=None):
@@ -103,6 +105,13 @@ class jw(object):
         
         if self.param['add_noutputs_keyword'] == True:
             warnings.warn("This code will modify the uncal file NOUTPUTS. This is DANGEROUS. Only use for older mirage simulations that lacked NOUTPUTS keyword")
+        
+    
+    def check_biasCycle(self):
+        self.biasCycleSearch = self.param['biasCycleSearch']
+        searchResult = np.sort(glob.glob(self.biasCycleSearch))
+        if len(searchResult) != 2:
+            warnings.warn('Found something other than 2 files for the biasCycleSearch')
         
     
     def set_up_dirs(self):
@@ -326,6 +335,32 @@ class jw(object):
             self.save_diagnostic_img(self.ROEBAmask,'roeba_mask')
             
     
+    def cycleBiasSub(self,stepResult):
+        """
+        Cycle through the bias pattern defined by biasCycle
+        """
+        cycler_counter = 0
+        cycleLen = len(self.param['biasCycle'])
+        ngroups = stepResult.meta.exposure.ngroups
+        data = stepResult.data
+        
+        result = deepcopy(data)
+        
+        for ind,oneInt in enumerate(data):
+            biasType = self.param['biasCycle'][cycler_counter]
+            
+            biasPath = self.biasCycleSearch.replace('?',biasType)
+            
+            
+            datBias = fits.getdata(biasPath)
+            tiledBias = np.tile(datBias,[ngroups,1,1])
+            
+            result[ind] = oneInt - tiledBias
+            
+            cycler_counter = np.mod(cycler_counter + 1,cycleLen)
+            
+        return result
+    
     def run_jw(self):
         """
         Run the JWST pipeline for all uncal files
@@ -354,15 +389,18 @@ class jw(object):
             elif self.param['custBias'] == 'selfBias':
                 superbias_step.skip = True
                 saturation.data = saturation.data - saturation.data[0][0]
+            elif self.param['custBias'] == 'cycleBias':
+                superbias_step.skip = True
+                saturation.data = self.cycleBiasSub(saturation)
             else:
                 superbias_step.override_superbias = self.param['custBias']
             
             if self.param['saveBiasStep'] == True:
                 superbias_step.output_dir = self.output_dir
                 superbias_step.save_results = True
-                if self.param['custBias'] == 'selfBias':
+                if (self.param['custBias'] == 'selfBias') | (self.param['custBias'] == 'cycleBias'):
                     ## Have to save it manually if this step is skipped because of self bias subtraction
-                    origName = saturation.meta.filename
+                    origName = deepcopy(saturation.meta.filename)
                     if '_uncal.fits' in origName:
                         outName = origName.replace('_uncal.fits','_superbiasstep.fits')
                     else:
@@ -370,7 +408,9 @@ class jw(object):
                     
                     outPath = os.path.join(self.output_dir,outName)
                     saturation.to_fits(outPath,overwrite=True)
-                
+                    
+                    ## try to return filename back to original
+                    saturation.meta.filename = origName
     
             # Call using the the output from the previously-run saturation step
             superbias = superbias_step.run(saturation)

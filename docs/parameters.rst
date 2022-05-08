@@ -15,7 +15,16 @@ Here are some descriptions of what the parameters do.
 * :code:`None` in Python or :code:`null` in the YAML parameter file to use the default bias from the pipeline.
 * Path If you give it a path to a custom fits file (e.g. :code:`bias/jwst_nircam_superbias_0027.fits`), it will use that superbias.
 * :code:`selfBias` : it will use the first frame available
+* :code:`cycleBias`: it will cycle through biases in a pattern defined by biasCycle
 
+:code:`biasCycle`
+~~~~~~~~~~~~~~~~~
+Controls how the bias is subtracted in the case that :code:`custBias` is equal to :code:`cycleBias`
+For example, :code:`['A','B','B','B']` will do bias A, B, B, B, A, B, B, B.
+
+:code:`biasCycleSearch`
+~~~~~~~~~~~~~~~~~~~~~~~
+Controls where to find the bias cycle files. For example :code:`data_path/superbias_nrca3_?.fits` will search for :code:`superbias_nrca3_A.fits` and :code:`superbias_nrca3_B.fits` if the biasCycle contains A and B.
 
 :code:`saveROEBAdiagnostics`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,3 +42,11 @@ Here are some descriptions of what the parameters do.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 :code:`ROEBAmaskGrowthSize` sets the size (in pixels) of how large a smoothing kernel should be used to grow the ROEBA mask.
 This allows the mask to go into faint wings of the image
+
+:code:`saveJumpStep`
+~~~~~~~~~~~~~~~~~~~~
+Save the jump step result before ramp fitting?
+
+:code:`saveJumpStep`
+~~~~~~~~~~~~~~~~~~~~
+Save the jump step result before ramp fitting?

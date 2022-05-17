@@ -488,7 +488,7 @@ class jw(object):
             
             if self.param['doLinearity'] == True:
                 linearity_step.skip = False
-            elif self.param['doLinearity'] == False
+            elif self.param['doLinearity'] == False:
                 linearity_setp.skip = True
             else:
                 raise Exception("Unrecognized doLinearity value {}".format(self.param['doLinearity']))

@@ -50,3 +50,7 @@ Save the jump step result before ramp fitting?
 :code:`saveJumpStep`
 ~~~~~~~~~~~~~~~~~~~~
 Save the jump step result before ramp fitting?
+
+:code:`doLincor`
+~~~~~~~~~~~~~~~~~~~~
+Do the linearity correction? It should be True for correct results, but sometimes can be helpful to turn off for troubleshooting

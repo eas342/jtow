@@ -485,7 +485,15 @@ class jw(object):
     
             # Using the run() method
             linearity_step = LinearityStep()
-            # refpix step
+            
+            if self.param['doLinearity'] == True:
+                linearity_step.skip = False
+            elif self.param['doLinearity'] == False
+                linearity_setp.skip = True
+            else:
+                raise Exception("Unrecognized doLinearity value {}".format(self.param['doLinearity']))
+                
+            
             linearity = linearity_step.run(refpix_res)
             del refpix_res ## try to save memory
     

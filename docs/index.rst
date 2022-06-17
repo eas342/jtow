@@ -8,6 +8,7 @@ Welcome to jtow's documentation!
    readme
    installation
    parameters
+   default_parameters
    quickstart
    modules
    contributing

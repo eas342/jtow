@@ -1,8 +1,10 @@
+.. _parameter-descriptions:
 ==========
 Parameters
 ==========
 
 :code:`jtow takes` parameters from a parameter file as a dictionary.
+The default parameters can be found at :ref:`the default parameters <default-parameters>` 
 
 Here are some descriptions of what the parameters do.
 
@@ -43,9 +45,9 @@ Controls where to find the bias cycle files. For example :code:`data_path/superb
 :code:`ROEBAmaskGrowthSize` sets the size (in pixels) of how large a smoothing kernel should be used to grow the ROEBA mask.
 This allows the mask to go into faint wings of the image
 
-:code:`saveJumpStep`
+:code:`saveBiasStep`
 ~~~~~~~~~~~~~~~~~~~~
-Save the jump step result before ramp fitting?
+Save the result of the bias subtraction step of the pipeline?
 
 :code:`saveJumpStep`
 ~~~~~~~~~~~~~~~~~~~~

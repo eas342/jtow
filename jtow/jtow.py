@@ -486,12 +486,12 @@ class jw(object):
             # Using the run() method
             linearity_step = LinearityStep()
             
-            if self.param['doLinearity'] == True:
+            if self.param['doLincor'] == True:
                 linearity_step.skip = False
-            elif self.param['doLinearity'] == False:
-                linearity_setp.skip = True
+            elif self.param['doLincor'] == False:
+                linearity_step.skip = True
             else:
-                raise Exception("Unrecognized doLinearity value {}".format(self.param['doLinearity']))
+                raise Exception("Unrecognized doLincor value {}".format(self.param['doLinearity']))
                 
             
             linearity = linearity_step.run(refpix_res)

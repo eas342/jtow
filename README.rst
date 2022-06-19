@@ -18,16 +18,12 @@ jtow
 
 JWST Time series Observation Wrapper.
 
-This code is designed to run the JWST pipeline with some modifications and custom steps.
+This code is designed to run the JWST pipeline with some modifications and custom steps.l
 
 * Free software: MIT license
 * Documentation: https://jtow.readthedocs.io.
 
 
-<!-- Features
---------
-
-* TODO -->
 
 Credits
 -------

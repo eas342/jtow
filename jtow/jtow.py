@@ -27,6 +27,7 @@ import pdb
 from scipy import ndimage
 from copy import deepcopy
 import pkg_resources
+from configparser import ConfigParser
 
 # Individual steps that make up calwebb_detector1
 from jwst.dq_init import DQInitStep
@@ -59,6 +60,29 @@ def read_yaml(filePath):
     with open(filePath) as yamlFile:
         yamlStructure = yaml.safe_load(yamlFile)
     return yamlStructure
+
+def log_output(TargetName):
+    """
+    Output the JWST pipeline log infromation to a seperate file.
+    
+    Parameters
+    ---------
+    TargetName: str
+        Name of the target
+    """
+    config_object = ConfigParser()
+    
+    #Required sections for the configuration file
+    config_object["*"] = {"handler": "file:{}_pipeline.log".format(TargetName), "level": "INFO"}
+    
+    #Write the above sections to stpipe-log.cfg file
+    pwd = os.getcwd() #current working directory
+    
+    #Write the file to the working directory
+    with open(pwd+'/stpipe-log.cfg'.format(TargetName), 'w') as conf:
+        config_object.write(conf)
+        
+    print("A configuration file {}_stpipe-log.cfg and a log output file {}_pipeline.log for the JWST Pipeline will be created in the working directory".format(TargetName, TargetName))
 
 class jw(object):
     def __init__(self,paramFile=defaultParamPath,directParam=None):

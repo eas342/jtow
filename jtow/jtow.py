@@ -339,7 +339,8 @@ class jw(object):
         """
         Cycle through the bias pattern defined by biasCycle
         """
-        cycler_counter = 0
+        int_start = meta.exposure.integration_start
+        cycler_counter = 0 + int_start - 1
         cycleLen = len(self.param['biasCycle'])
         ngroups = stepResult.meta.exposure.ngroups
         data = stepResult.data

@@ -334,7 +334,27 @@ class jw(object):
         else:
             self.save_diagnostic_img(self.ROEBAmask,'roeba_mask')
             
+    def lineInterceptBias(self,stepResult):
+        """
+        Fit a line to all pixels and use the intercept
+        """
+        data = stepResult.data
+        
+        result = deepcopy(data)
+        
+        for ind,oneInt in enumerate(data):
+            nz, ny, nx = oneInt.shape
+            x = np.arange(nz)
     
+            flatDat = np.reshape(oneInt,[nz,nx * ny])
+            pfit = np.polyfit(x,flatDat,1)
+            intercept2D = np.reshape(pfit[1],[ny,nx])
+            slope2D = np.reshape(pfit[0],[ny,nx])
+            result[ind] = oneInt - intercept2D
+        
+        return result 
+    
+        
     def cycleBiasSub(self,stepResult):
         """
         Cycle through the bias pattern defined by biasCycle
@@ -393,13 +413,16 @@ class jw(object):
             elif self.param['custBias'] == 'cycleBias':
                 superbias_step.skip = True
                 saturation.data = self.cycleBiasSub(saturation)
+            elif self.param['custBias'] == 'lineIntercept':
+                superbias_step.skip = True
+                saturation.data = self.lineInterceptBias(saturation)
             else:
                 superbias_step.override_superbias = self.param['custBias']
             
             if self.param['saveBiasStep'] == True:
                 superbias_step.output_dir = self.output_dir
                 superbias_step.save_results = True
-                if (self.param['custBias'] == 'selfBias') | (self.param['custBias'] == 'cycleBias'):
+                if self.param['custBias'] in ['selfBias','cycleBias','lineIntercept']:
                     ## Have to save it manually if this step is skipped because of self bias subtraction
                     origName = deepcopy(saturation.meta.filename)
                     if '_uncal.fits' in origName:

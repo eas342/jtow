@@ -1,4 +1,5 @@
 .. _parameter-descriptions:
+
 ==========
 Parameters
 ==========
@@ -18,6 +19,7 @@ Here are some descriptions of what the parameters do.
 * Path If you give it a path to a custom fits file (e.g. :code:`bias/jwst_nircam_superbias_0027.fits`), it will use that superbias.
 * :code:`selfBias` : it will use the first frame available
 * :code:`cycleBias`: it will cycle through biases in a pattern defined by biasCycle
+* :code:`lineIntercept`: it will fit a line to the integration and use the intercept as the bias frame
 
 :code:`biasCycle`
 ~~~~~~~~~~~~~~~~~

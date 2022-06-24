@@ -40,7 +40,7 @@ if (os.path.exists(rawdata_file) == False):
 #HDUList = fits.open(file)
 
 #image2D = HDUList[1].data[0][0] #Acting as Bias File
-jtow_Params_file = cwd+'/jtow_test_results/jtow_nrca1_custBias_None/jtow_nrca1_custBias_None_params.yaml' #File for the param file 
+jtow_Params_file = cwd+'/jtow_test_results/jtow_nrca5_custBias_None/jtow_nrca5_custBias_None_params.yaml' #File for the param file 
 if (os.path.exists(jtow_Params_file) == False):
     jtow_Params = {'rawFileSearch': rawdata_file,
                    'outputDir': cwd+'/jtow_test_results/jtow_nrca5_custBias_None/',

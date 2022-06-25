@@ -82,7 +82,7 @@ def log_output(TargetName):
     with open(pwd+'/stpipe-log.cfg'.format(TargetName), 'w') as conf:
         config_object.write(conf)
         
-    print("A configuration file {}_stpipe-log.cfg and a log output file {}_pipeline.log for the JWST Pipeline will be created in the working directory".format(TargetName, TargetName))
+    print("A configuration file stpipe-log.cfg and a log output file {}_pipeline.log for the JWST Pipeline will be created in the working directory".format(TargetName, TargetName))
 
 class jw(object):
     def __init__(self,paramFile=defaultParamPath,directParam=None):

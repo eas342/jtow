@@ -17,3 +17,4 @@ saveJumpStep: False
 biasCycle: ['A','B','B','B']
 biasCycleSearch: null
 doLincor: True
+simpleSlopes: null

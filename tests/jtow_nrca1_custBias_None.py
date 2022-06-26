@@ -14,6 +14,7 @@ import glob
 #unittest
 import unittest
 from jtow import jtow
+from copy import deepcopy
 
 #Get the raw uncalibrated data for NIRCam short-wavelength detector
 
@@ -65,6 +66,8 @@ if (os.path.exists(jtow_Params_file) == False):
     #Write the test parameter file
     with open(cwd+'/jtow_test_results/jtow_nrca1_custBias_None/jtow_nrca1_custBias_None_params.yaml', 'w') as file:
         paramfile = yaml.dump(jtow_Params, file)
+else:
+    jtow_Params = yaml.safe_load(open(jtow_Params_file))
 
 #Test jtow
 class Test_JTOW(unittest.TestCase):
@@ -78,3 +81,15 @@ class Test_JTOW(unittest.TestCase):
     
     def test_run_jw(self):
         self.jtow_obj.run_jw()
+        
+        
+class Test_JTOW_simple_slopes(unittest.TestCase):
+    def setUp(self):
+        """Set up test fixtures, if any."""
+        self.params = deepcopy(jtow_Params)
+        self.params['simpleSlopes'] = 'Only'
+        self.jtow_obj = jtow.jw(directParam = self.params)
+    
+    def test_run_jw(self):
+        self.jtow_obj.run_jw()
+    

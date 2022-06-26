@@ -58,3 +58,13 @@ Save the jump step result before ramp fitting?
 :code:`doLincor`
 ~~~~~~~~~~~~~~~~~~~~
 Do the linearity correction? It should be True for correct results, but sometimes can be helpful to turn off for troubleshooting
+
+:code:`simpleSlopes`
+~~~~~~~~~~~~~~~~~~~~
+Do a simple line fit rather than the most-optimal (right now ordinary least squares) fit? 
+
+* :code:`None` ('null' in .yaml file), no simple slopes are done. Regular jwst pipeline ramp fits.
+* :code:`'Both'` Both the jwst fits and simple slopes are performed.
+* :code:`'Only'` Only simple slopes are calculated and the (slow) most-optimal fit is skipped.
+
+

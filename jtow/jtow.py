@@ -597,8 +597,11 @@ class jw(object):
             else:
                 # Instantiate and set parameters
                 refpix_step = RefPixStep()
-                #refpix_step.output_dir = output_dir
-                #refpix_step.save_results = True
+                refpix_step.output_dir = self.output_dir
+                if self.param['saveROEBAdiagnostics'] == True:
+                    refpix_step.save_results = True
+                
+                refpix_step.side_smoothing_length=self.param['side_smoothing_length']
                 refpix_res = refpix_step.run(superbias)
             
             del superbias ## try to save memory

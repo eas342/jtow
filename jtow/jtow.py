@@ -106,6 +106,11 @@ class jw(object):
             if oneKey not in self.param:
                 self.param[oneKey] = defaultParams[oneKey]
         
+        ## check that there are no unexpected parameters
+        for oneKey in self.param:
+            if oneKey not in defaultParams.keys():
+                warnings.warn("{} not an expected parameter".format(oneKey))
+        
         self.set_up_dirs()
         self.get_files()
         
@@ -117,7 +122,20 @@ class jw(object):
         
         if self.param['custBias'] == 'cycleBias':
             self.check_biasCycle()
-
+        
+        if self.param['simpleSlopes'] == None:
+            self.do_simple_ramp_fit = False
+            self.do_full_ramp_fit = True
+        elif self.param['simpleSlopes'] == 'Both':
+            self.do_simple_ramp_fit = True
+            self.do_full_ramp_fit = True
+        elif self.param['simpleSlopes'] == 'Only':
+            self.do_simple_ramp_fit = True
+            self.do_full_ramp_fit = False
+        else:
+            raise Exception("Unrecognized simpleSlopes option {}. Options are None, Both and Only".format(simpelSlopes))
+        
+        
     
     def get_parameters(self,paramFile,directParam=None):
         if directParam is None:
@@ -405,6 +423,61 @@ class jw(object):
             
         return result
     
+    def simple_ramp_fit(self,ramp4D,uncal_name):
+        nint, ngroup, ny, nx = ramp4D.shape
+        ramp4D.meta.exposure
+        
+        tgroup = ramp4D.meta.exposure.group_time
+        x = np.arange(ngroup) * tgroup
+        
+        rampfit3D_slope = np.zeros([nint,ny,nx])
+        rampfit3D_intercept = np.zeros([nint,ny,nx])
+        for intNum in tqdm.tqdm(np.arange(nint)):
+            oneInt = ramp4D.data[intNum]
+            
+            flatDat = np.reshape(oneInt,[ngroup,nx * ny])
+            pfit = np.polyfit(x,flatDat,1)
+            intercept2D = np.reshape(pfit[1],[ny,nx])
+            slope2D = np.reshape(pfit[0],[ny,nx])
+            rampfit3D_slope[intNum] = slope2D
+            rampfit3D_intercept[intNum] = intercept2D
+        
+        ## Save the result
+        origHead = fits.getheader(uncal_name)
+        
+        ## save the DQ
+        if hasattr(ramp4D,'groupdq'):
+            saveDQ = True
+            DQ_res = np.bitwise_or.reduce(ramp4D.groupdq,axis=1)
+            dqHDU = fits.ImageHDU(DQ_res)
+            dqHDU.name = 'DQ'
+        else:
+            saveDQ = False
+        
+        for oneOutput in ['slopes','intercepts']:
+            if oneOutput == 'slopes':
+                outSuffix = '_simple_slopes.fits'
+                result3D = rampfit3D_slope
+            else:
+                outSuffix = '_simple_intercepts.fits'
+                result3D = rampfit3D_intercept
+            
+            outName_result = ramp4D.meta.filename.replace('.fits',outSuffix).replace('_uncal','')
+            outPath_result = os.path.join(self.output_dir,outName_result)
+            primHDU = fits.PrimaryHDU(None,origHead)
+            resultHDU = fits.ImageHDU(result3D)
+            resultHDU.name = "SCI"
+            HDUList_result = fits.HDUList([primHDU,resultHDU])
+            ## Also save the DQ
+            if saveDQ == True:
+                HDUList_result.append(dqHDU)
+            
+            print("Saving result to {}".format(outPath_result))
+            HDUList_result.writeto(outPath_result,overwrite=True)
+            
+            del HDUList_result
+        
+    
     def run_jw(self):
         """
         Run the JWST pipeline for all uncal files
@@ -524,8 +597,11 @@ class jw(object):
             else:
                 # Instantiate and set parameters
                 refpix_step = RefPixStep()
-                #refpix_step.output_dir = output_dir
-                #refpix_step.save_results = True
+                refpix_step.output_dir = self.output_dir
+                if self.param['saveROEBAdiagnostics'] == True:
+                    refpix_step.save_results = True
+                
+                refpix_step.side_smoothing_length=self.param['side_smoothing_length']
                 refpix_res = refpix_step.run(superbias)
             
             del superbias ## try to save memory
@@ -597,23 +673,30 @@ class jw(object):
     
             # In[344]:
     
+            ## Do a simple ramp fit if parameters are set
+            if self.do_simple_ramp_fit == True:
+                self.simple_ramp_fit(jump,uncal_file)
+            
+            if self.do_full_ramp_fit == True:
+                # Using the run() method
+                ramp_fit_step = RampFitStep()
+                ramp_fit_step.maximum_cores = self.max_cores
     
-            # Using the run() method
-            ramp_fit_step = RampFitStep()
-            ramp_fit_step.maximum_cores = self.max_cores
+                ramp_fit_step.output_dir = self.output_dir
+                ramp_fit_step.save_results = True
     
-            ramp_fit_step.output_dir = self.output_dir
-            ramp_fit_step.save_results = True
-    
-            # Let's save the optional outputs, in order
-            # to help with visualization later
-            #ramp_fit_step.save_opt = True
-    
-            # Call using the dark instance from the previously-run
-            # jump step
-            ramp_fit = ramp_fit_step.run(jump)
+                # Let's save the optional outputs, in order
+                # to help with visualization later
+                #ramp_fit_step.save_opt = True
+            
+
+            
+                # Call using the dark instance from the previously-run
+                # jump step
+                ramp_fit = ramp_fit_step.run(jump)
+                del ramp_fit ## try to save memory
             del jump ## try to save memory
-            del ramp_fit ## try to save memory
+            
     
     
         executionTime = (time.time() - startTime)

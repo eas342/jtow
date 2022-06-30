@@ -17,3 +17,5 @@ saveJumpStep: False
 biasCycle: ['A','B','B','B']
 biasCycleSearch: null
 doLincor: True
+simpleSlopes: null
+side_smoothing_length: 11

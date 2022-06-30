@@ -33,9 +33,9 @@ Controls where to find the bias cycle files. For example :code:`data_path/superb
 :code:`saveROEBAdiagnostics`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:code:`saveROEBAdiagnostics` saves diagnostics from row-by-row, odd/even by amplifier (ROEBA) correction.
+:code:`saveROEBAdiagnostics` saves diagnostics from row-by-row, odd/even by amplifier (ROEBA) correction. If just using regular reference pixel correction, then the regular reference pixel correction is saved.
 
-* :code:`True` saves the step immediately following ROEBA correction (full ramp with all integrations). If growing the mask with a kernel, it also saves the growth kernel and before/after growth.
+* :code:`True` saves the step immediately following ROEBA correction (full ramp with all integrations). If growing the mask with a kernel, it also saves the growth kernel and before/after growth. If doing regular reference pixel correction instead of ROEBA, save the output of the reference pixel step.
 * :code:`False` does not save these images.
 
 :code:`jumpRejectionThreshold`
@@ -58,3 +58,15 @@ Save the jump step result before ramp fitting?
 :code:`doLincor`
 ~~~~~~~~~~~~~~~~~~~~
 Do the linearity correction? It should be True for correct results, but sometimes can be helpful to turn off for troubleshooting
+
+:code:`simpleSlopes`
+~~~~~~~~~~~~~~~~~~~~
+Do a simple line fit rather than the most-optimal (right now ordinary least squares) fit? 
+
+* :code:`None` ('null' in .yaml file), no simple slopes are done. Regular jwst pipeline ramp fits.
+* :code:`'Both'` Both the jwst fits and simple slopes are performed.
+* :code:`'Only'` Only simple slopes are calculated and the (slow) most-optimal fit is skipped.
+
+:code:`side_smoothing_length`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set the side smoothing length for reference pixels. This is passed to the :code:`jwst` reference pixel step. This does not affect ROEBA so if :code:`ROEBACorrection` is set to :code:`True`, this will not matter (in the current version of jtow at least).

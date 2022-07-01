@@ -5,9 +5,10 @@ Credits
 Development Lead
 ----------------
 
-* Everett Schlawin <granfalloontoyballoon@hotmail.com>
+* Everett Schlawin
 
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Kayli Glidic
+

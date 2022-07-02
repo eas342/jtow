@@ -571,17 +571,35 @@ class jw(object):
                 # In[391]:
                 
                 
+                ## have to transpose NIRISS and NIRSpec, but not NIRCam
+                if superbias.meta.instrument.name == "NIRCAM":
+                    transposeForROEBA = False
+                else:
+                    transposeForROEBA = True
+                
                 for oneInt in tqdm.tqdm(np.arange(nints)):
                     for oneGroup in np.arange(ngroups):
-            
-                        rowSub, modelImg = rowamp_sub.do_backsub(superbias.data[oneInt,oneGroup,:,:],
+                        if transposeForROEBA == True:
+                            imgToCorrect = superbias.data[oneInt,oneGroup,:,:].T
+                            if self.ROEBAmask is None:
+                                backgMask = self.ROEBAmask
+                            else:
+                                backgMask = self.ROEBAmask.T
+                        else:
+                            imgToCorrect = superbias.data[oneInt,oneGroup,:,:]
+                            backgMask = self.ROEBAmask
+                        
+                        rowSub, modelImg = rowamp_sub.do_backsub(imgToCorrect,
                                                                  phot,amplifiers=self.param['noutputs'],
-                                                                 backgMask=self.ROEBAmask,
+                                                                 backgMask=backgMask,
                                                                  saveDiagnostics=self.param['saveROEBAdiagnostics'])
-                        refpix_res.data[oneInt,oneGroup,:,:] = rowSub
+                        if transposeForROEBA == True:
+                            refpix_res.data[oneInt,oneGroup,:,:] = rowSub.T
+                        else:
+                            refpix_res.data[oneInt,oneGroup,:,:] = rowSub
                 
-                # # Linearity Step
-    
+                
+                
                 # In[328]:
                 if self.param['saveROEBAdiagnostics'] == True:
                     origName = deepcopy(refpix_res.meta.filename)
@@ -605,7 +623,8 @@ class jw(object):
                 refpix_res = refpix_step.run(superbias)
             
             del superbias ## try to save memory
-    
+            
+            # # Linearity Step   
             # Using the run() method
             linearity_step = LinearityStep()
             

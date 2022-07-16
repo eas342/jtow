@@ -705,7 +705,10 @@ class jw(object):
     
                 ramp_fit_step.output_dir = self.output_dir
                 ramp_fit_step.save_results = True
-    
+                
+                if hasattr(ramp_fit_step,'suppress_one_group'):
+                    ramp_fit_step.suppress_one_group = self.param['suppressOneGroup']
+                
                 # Let's save the optional outputs, in order
                 # to help with visualization later
                 #ramp_fit_step.save_opt = True

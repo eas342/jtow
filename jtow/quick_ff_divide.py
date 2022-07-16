@@ -30,9 +30,19 @@ def quick_ff_divide(searchPath):
         outDir = os.path.join(os.path.split(oneFile)[0],'ff_div')
         if os.path.exists(outDir) == False:
             os.mkdir(outDir)
+
+        if head['INSTRUME'] == 'NIRSPEC':
+            instrumName = 'nirspec'
+        else:
+            instrumName = 'nircam'
         
-        nc_path = os.path.join(os.environ['CRDS_PATH'],'references','jwst','nircam')
-        if (head['DETECTOR'] == 'NRCALONG') & ("GRISM" in head['PUPIL']):
+        crds_path = os.path.join(os.environ['CRDS_PATH'],'references','jwst',instrumName)
+        if 'PUPIL' in head:
+            pupil = head['PUPIL']
+        else:
+            pupil = "none"
+        
+        if (head['DETECTOR'] == 'NRCALONG') & ("GRISM" in pupil):
             if head['FILTER'] == 'F444W':
                 flatName = 'jwst_nircam_flat_0313.fits'
             elif head['FILTER'] == 'F322W2':
@@ -41,10 +51,18 @@ def quick_ff_divide(searchPath):
                 raise NotImplementedError("Have to add this filter {}".format(head['FILTER']))
         else:
             recs = crds.getrecommendations(head)
-            flatName = recs['flat']
+            if instrumName == 'nirspec':
+                flatName = recs['dflat']
+            else:
+                flatName = recs['flat']
         
-        flatPath = os.path.join(nc_path,flatName)
-        flatData = fits.getdata(flatPath)
+        flatPath = os.path.join(crds_path,flatName)
+        if instrumName == 'nirspec':
+            flatCube = fits.getdata(flatPath)
+            nPlanes = flatCube.shape[0]
+            flatData = flatCube[nPlanes // 2]
+        else:
+            flatData = fits.getdata(flatPath)
         
         outName = os.path.basename(oneFile).replace('.fits','_ff.fits')
         outPath = os.path.join(outDir,outName)
@@ -54,10 +72,11 @@ def quick_ff_divide(searchPath):
         xEnd = xStart + HDUList[0].header['SUBSIZE1']
         yStart = HDUList[0].header['SUBSTRT2'] - 1
         yEnd = yStart + HDUList[0].header['SUBSIZE2']
-        
+
+            
         subFlat = flatData[yStart:yEnd,xStart:xEnd]
         HDUList['SCI'].data = HDUList['SCI'].data / subFlat
-        badpt = (HDUList['DQ'].data & 2**0)
+        badpt = (HDUList['DQ'].data & 2**0) > 0
         HDUList['SCI'].data[badpt] = np.nan
         HDUList.writeto(outPath,overwrite=True)
         HDUList.close()

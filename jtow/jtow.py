@@ -677,6 +677,8 @@ class jw(object):
 
             jump_step.maximum_cores = self.max_cores
             
+            jump_step.flag_4_neighbors = self.param['jumpStepFlag4Neighbors']
+            
             if self.param['saveJumpStep'] == True:
                 jump_step.output_dir = self.output_dir
                 jump_step.save_results = True

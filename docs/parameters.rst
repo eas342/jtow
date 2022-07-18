@@ -70,3 +70,8 @@ Do a simple line fit rather than the most-optimal (right now ordinary least squa
 :code:`side_smoothing_length`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Set the side smoothing length for reference pixels. This is passed to the :code:`jwst` reference pixel step. This does not affect ROEBA so if :code:`ROEBACorrection` is set to :code:`True`, this will not matter (in the current version of jtow at least).
+
+:code:`custGroupDQfile`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set a custom data quality array for after the saturation step to manually set some pixels as saturated. Could be useful if you want to treat all the pixels in a column the same or enforce that the data quality flags are not as variable. Should be the path to a FITS file with the same number of groups as the data and the same dimensions as the data. Will be combined with all integrations' group data quality flags with a bitwise or.
+

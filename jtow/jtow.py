@@ -535,7 +535,14 @@ class jw(object):
             # Call using the the output from the previously-run saturation step
             superbias = superbias_step.run(saturation)
             
+            ngroups = superbias.meta.exposure.ngroups
+            nints = superbias.data.shape[0] ## use the array size because segmented data could have fewer ints
             
+            if self.param['custGroupDQfile'] is not None:
+                custGroupDQ = fits.getdata(self.param['custGroupDQfile'])
+                tiled_custGroup = np.tile(custGroupDQ,[nints,1,1,1])
+                superbias.groupdq = (superbias.groupdq | tiled_custGroup)
+                
             del saturation ## try to save memory
             
             
@@ -545,9 +552,8 @@ class jw(object):
                 # refpix_res = deepcopy(refpix)
                 # the old way was to run the refpix and then replace it
                 refpix_res = deepcopy(superbias)
-    
-                ngroups = superbias.meta.exposure.ngroups
-                nints = superbias.data.shape[0] ## use the array size because segmented data could have fewer ints
+                
+                
                 ## (instead of 
     
                 # First, make sure that the aperture looks good. Here I have cheated and used a final rampfit result.

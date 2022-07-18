@@ -21,3 +21,4 @@ simpleSlopes: null
 side_smoothing_length: 11
 jumpStepFlag4Neighbors: True
 suppressOneGroup: True
+custGroupDQfile: null

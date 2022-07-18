@@ -17,6 +17,7 @@ saveJumpStep: False
 biasCycle: ['A','B','B','B']
 biasCycleSearch: null
 doLincor: True
+skipJumpDet: False
 simpleSlopes: null
 side_smoothing_length: 11
 jumpStepFlag4Neighbors: True

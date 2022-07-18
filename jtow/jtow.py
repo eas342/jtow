@@ -680,7 +680,8 @@ class jw(object):
             #jump_step.output_dir = output_dir
             #jump_step.save_results = True
             jump_step.rejection_threshold = self.param['jumpRejectionThreshold']
-
+            jump_step.skip = self.param['skipJumpDet']
+            
             jump_step.maximum_cores = self.max_cores
             
             jump_step.flag_4_neighbors = self.param['jumpStepFlag4Neighbors']

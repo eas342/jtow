@@ -73,5 +73,8 @@ Set the side smoothing length for reference pixels. This is passed to the :code:
 
 :code:`custGroupDQfile`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set a custom data quality array for after the saturation step to manually set some pixels as saturated. Could be useful if you want to treat all the pixels in a column the same or enforce that the data quality flags are not as variable. Should be the path to a FITS file with the same number of groups as the data and the same dimensions as the data. Will be combined with all integrations' group data quality flags with a bitwise or.
+Set a custom data quality array for after the saturation step to manually set some pixels as saturated. Could be useful if you want to treat all the pixels in a column the same or enforce that the data quality flags are not as variable. Should be the path to a FITS file with the same number of groups as the data and the same dimensions as the data. Will be combined with all integrations' group data quality flags with a bitwise or. If :code:`None` ("Null" in YAML file), this is not done.
 
+:code:`skipJumpDet`
+~~~~~~~~~~~~~~~~~~~~~~
+Skip the jump detection step? Passed to the jump detection skip parameter. If True, it is skipped.

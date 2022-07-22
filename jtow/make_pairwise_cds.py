@@ -85,7 +85,7 @@ def make_pairs(fileSearch = 'proc_nrca3_p012_flight_singleBias/jw*_uncal_jumpste
                 outHDUList.writeto(outPath,overwrite=True)
             
         HDUList.close(oneFile)
-    
+        del HDUList
 
 
 

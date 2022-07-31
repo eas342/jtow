@@ -478,6 +478,88 @@ class jw(object):
             del HDUList_result
         
     
+    def run_roeba(self,superbias,nints,ngroups):
+        """
+        Do the ROEBA (row-by-row, odd/even by amplifier algorithm)
+        
+        Parameters
+        -----------
+        superbias: jwst cube model (I think)
+            The result of the superbias subtraction to run w/ ROEBA
+        
+        
+        """
+        # try using a copy of the bias results as the refpix output
+        # refpix = refpix_step.run(superbias)
+        # refpix_res = deepcopy(refpix)
+        # the old way was to run the refpix and then replace it
+        refpix_res = deepcopy(superbias)
+        
+        
+        ## (instead of 
+
+        # First, make sure that the aperture looks good. Here I have cheated and used a final rampfit result.
+
+        # In[389]:
+
+        if self.photParam is None:
+            phot = None
+        else:
+            phot = phot_pipeline.phot(directParam=self.photParam)
+
+
+        # In[390]:
+
+
+        #phot.showStamps(showPlot=True,boxsize=200,vmin=0,vmax=1)
+
+
+        # Everything inside the larger blue circle will be masked when doing reference pixel corrections
+
+        # In[391]:
+        
+        
+        ## have to transpose NIRISS and NIRSpec, but not NIRCam
+        if superbias.meta.instrument.name == "NIRCAM":
+            transposeForROEBA = False
+        else:
+            transposeForROEBA = True
+        
+        for oneInt in tqdm.tqdm(np.arange(nints)):
+            for oneGroup in np.arange(ngroups):
+                if transposeForROEBA == True:
+                    imgToCorrect = superbias.data[oneInt,oneGroup,:,:].T
+                    if self.ROEBAmask is None:
+                        backgMask = self.ROEBAmask
+                    else:
+                        backgMask = self.ROEBAmask.T
+                else:
+                    imgToCorrect = superbias.data[oneInt,oneGroup,:,:]
+                    backgMask = self.ROEBAmask
+                
+                rowSub, modelImg = rowamp_sub.do_backsub(imgToCorrect,
+                                                         phot,amplifiers=self.param['noutputs'],
+                                                         backgMask=backgMask,
+                                                         saveDiagnostics=self.param['saveROEBAdiagnostics'])
+                if transposeForROEBA == True:
+                    refpix_res.data[oneInt,oneGroup,:,:] = rowSub.T
+                else:
+                    refpix_res.data[oneInt,oneGroup,:,:] = rowSub
+        
+        
+        
+        # In[328]:
+        if self.param['saveROEBAdiagnostics'] == True:
+            origName = deepcopy(refpix_res.meta.filename)
+            if '.fits' in origName:
+                outName = origName.replace('.fits','_refpixstep.fits')
+            else:
+                outName = 'ROEBAstep.fits'
+        
+            outPath = os.path.join(self.output_dir,outName)
+            refpix_res.to_fits(outPath,overwrite=True)
+        return refpix_res
+    
     def run_jw(self):
         """
         Run the JWST pipeline for all uncal files
@@ -547,75 +629,8 @@ class jw(object):
             
             
             if self.param['ROEBACorrection'] == True:
-                # try using a copy of the bias results as the refpix output
-                # refpix = refpix_step.run(superbias)
-                # refpix_res = deepcopy(refpix)
-                # the old way was to run the refpix and then replace it
-                refpix_res = deepcopy(superbias)
+                refpix_res = self.run_roeba(superbias,nints,ngroups)
                 
-                
-                ## (instead of 
-    
-                # First, make sure that the aperture looks good. Here I have cheated and used a final rampfit result.
-    
-                # In[389]:
-    
-                if self.photParam is None:
-                    phot = None
-                else:
-                    phot = phot_pipeline.phot(directParam=self.photParam)
-    
-    
-                # In[390]:
-    
-    
-                #phot.showStamps(showPlot=True,boxsize=200,vmin=0,vmax=1)
-    
-    
-                # Everything inside the larger blue circle will be masked when doing reference pixel corrections
-    
-                # In[391]:
-                
-                
-                ## have to transpose NIRISS and NIRSpec, but not NIRCam
-                if superbias.meta.instrument.name == "NIRCAM":
-                    transposeForROEBA = False
-                else:
-                    transposeForROEBA = True
-                
-                for oneInt in tqdm.tqdm(np.arange(nints)):
-                    for oneGroup in np.arange(ngroups):
-                        if transposeForROEBA == True:
-                            imgToCorrect = superbias.data[oneInt,oneGroup,:,:].T
-                            if self.ROEBAmask is None:
-                                backgMask = self.ROEBAmask
-                            else:
-                                backgMask = self.ROEBAmask.T
-                        else:
-                            imgToCorrect = superbias.data[oneInt,oneGroup,:,:]
-                            backgMask = self.ROEBAmask
-                        
-                        rowSub, modelImg = rowamp_sub.do_backsub(imgToCorrect,
-                                                                 phot,amplifiers=self.param['noutputs'],
-                                                                 backgMask=backgMask,
-                                                                 saveDiagnostics=self.param['saveROEBAdiagnostics'])
-                        if transposeForROEBA == True:
-                            refpix_res.data[oneInt,oneGroup,:,:] = rowSub.T
-                        else:
-                            refpix_res.data[oneInt,oneGroup,:,:] = rowSub
-                
-                
-                
-                # In[328]:
-                if self.param['saveROEBAdiagnostics'] == True:
-                    origName = deepcopy(refpix_res.meta.filename)
-                    if '.fits' in origName:
-                        outName = origName.replace('.fits','_refpixstep.fits')
-                    else:
-                        outName = 'ROEBAstep.fits'
-                
-                    outPath = os.path.join(self.output_dir,outName)
-                    refpix_res.to_fits(outPath,overwrite=True)
                 
                 
             else:

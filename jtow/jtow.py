@@ -616,16 +616,15 @@ class jw(object):
         for uncal_file in self.all_uncal_files:
                 # Using the run() method. Instantiate and set parameters
             dq_init_step = DQInitStep()
-            dq_init = dq_init_step.run(uncal_file)
+            pipe_result = dq_init_step.run(uncal_file)
             
             
             # ## Saturation Flagging
             # Using the run() method
             saturation_step = SaturationStep()
             # Call using the the output from the previously-run dq_init step
-            saturation = saturation_step.run(dq_init)
-            del dq_init ## try to save memory
-    
+            pipe_result = saturation_step.run(pipe_result)
+            
             # Using the run() method
             superbias_step = SuperBiasStep()
             
@@ -633,13 +632,13 @@ class jw(object):
                 pass
             elif self.param['custBias'] == 'selfBias':
                 superbias_step.skip = True
-                saturation.data = saturation.data - saturation.data[0][0]
+                pipe_result.data = pipe_result.data - saturation.data[0][0]
             elif self.param['custBias'] == 'cycleBias':
                 superbias_step.skip = True
-                saturation.data = self.cycleBiasSub(saturation)
+                pipe_result.data = self.cycleBiasSub(pipe_result)
             elif self.param['custBias'] == 'lineIntercept':
                 superbias_step.skip = True
-                saturation.data = self.lineInterceptBias(saturation)
+                pipe_result.data = self.lineInterceptBias(pipe_result)
             else:
                 superbias_step.override_superbias = self.param['custBias']
             
@@ -648,34 +647,33 @@ class jw(object):
                 superbias_step.save_results = True
                 if self.param['custBias'] in ['selfBias','cycleBias','lineIntercept']:
                     ## Have to save it manually if this step is skipped because of self bias subtraction
-                    origName = deepcopy(saturation.meta.filename)
+                    origName = deepcopy(pipe_result.meta.filename)
                     if '_uncal.fits' in origName:
                         outName = origName.replace('_uncal.fits','_superbiasstep.fits')
                     else:
                         outName = 'cust_superbiasstep.fits'
                     
                     outPath = os.path.join(self.output_dir,outName)
-                    saturation.to_fits(outPath,overwrite=True)
+                    pipe_result.to_fits(outPath,overwrite=True)
                     
                     ## try to return filename back to original
-                    saturation.meta.filename = origName
-    
-            # Call using the the output from the previously-run saturation step
-            superbias = superbias_step.run(saturation)
+                    pipe_result.meta.filename = origName
             
-            ngroups = superbias.meta.exposure.ngroups
-            nints = superbias.data.shape[0] ## use the array size because segmented data could have fewer ints
+            # Call using the the output from the previously-run saturation step
+            pipe_result = superbias_step.run(pipe_result)
+            
+            ngroups = pipe_result.meta.exposure.ngroups
+            nints = pipe_result.data.shape[0] ## use the array size because segmented data could have fewer ints
             
             if self.param['custGroupDQfile'] is not None:
                 custGroupDQ = fits.getdata(self.param['custGroupDQfile'])
                 tiled_custGroup = np.tile(custGroupDQ,[nints,1,1,1])
-                superbias.groupdq = (superbias.groupdq | tiled_custGroup)
+                pipe_result.groupdq = (pipe_result.groupdq | tiled_custGroup)
                 
-            del saturation ## try to save memory
             
             
             if self.param['ROEBACorrection'] == True:
-                refpix_res = self.run_roeba(superbias)
+                pipe_result = self.run_roeba(pipe_result)
                 
                 
                 
@@ -687,9 +685,10 @@ class jw(object):
                     refpix_step.save_results = True
                 
                 refpix_step.side_smoothing_length=self.param['side_smoothing_length']
-                refpix_res = refpix_step.run(superbias)
+                pipe_result = refpix_step.run(pipe_result)
+                
+                del refpix_step
             
-            del superbias ## try to save memory
             
             # # Linearity Step   
             # Using the run() method
@@ -703,9 +702,8 @@ class jw(object):
                 raise Exception("Unrecognized doLincor value {}".format(self.param['doLinearity']))
                 
             
-            linearity = linearity_step.run(refpix_res)
-            del refpix_res ## try to save memory
-    
+            pipe_result = linearity_step.run(pipe_result)
+            
             # # Persistence Step
     
             # Using the run() method
@@ -713,10 +711,10 @@ class jw(object):
 
             # skip for now since ref files are zeros
             persist_step.skip = True
-    
-            persist = persist_step.run(linearity)
-            del linearity ## try to save memory
-    
+            
+            pipe_result = persist_step.run(pipe_result)
+            
+            
             # # Dark current step
     
             # Using the run() method
@@ -727,10 +725,9 @@ class jw(object):
     
             # Call using the persistence instance from the previously-run
             # persistence step
-            dark = dark_step.run(persist)
-
-            del persist ## try to save memory
-    
+            pipe_result = dark_step.run(pipe_result)
+            
+            
             # # Jump Step
     
             # In[335]:
@@ -755,16 +752,14 @@ class jw(object):
             
             # Call using the dark instance from the previously-run
             # dark current subtraction step
-            jump = jump_step.run(dark)
-            del dark ## try to save memory
-    
+            pipe_result = jump_step.run(pipe_result)
             # # Ramp Fitting
     
             # In[344]:
     
             ## Do a simple ramp fit if parameters are set
             if self.do_simple_ramp_fit == True:
-                self.simple_ramp_fit(jump,uncal_file)
+                self.simple_ramp_fit(pipe_result,uncal_file)
             
             if self.do_full_ramp_fit == True:
                 # Using the run() method
@@ -785,9 +780,9 @@ class jw(object):
             
                 # Call using the dark instance from the previously-run
                 # jump step
-                ramp_fit = ramp_fit_step.run(jump)
-                del ramp_fit ## try to save memory
-            del jump ## try to save memory
+                pipe_result = ramp_fit_step.run(pipe_result)
+            
+                
             
     
     

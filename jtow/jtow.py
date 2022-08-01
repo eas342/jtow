@@ -45,6 +45,7 @@ from jwst import datamodels
 import warnings
 
 # In[359]:
+import gc
 
 
 ## ES custom pipeline
@@ -606,6 +607,22 @@ class jw(object):
             refpix_res.to_fits(outPath,overwrite=True)
         return refpix_res
     
+    def delete_object(self,obj):
+        """
+        Try to delete an object's data to free up memory
+        """
+        if hasattr(obj,'data'):
+            del obj.data
+        if hasattr(obj,'groupdq'):
+            del obj.groupdq
+        if hasattr(obj,'err'):
+            del obj.err
+        if hasattr(obj,'dq'):
+            del obj.dq
+        
+        del obj
+        gc.collect()
+    
     def run_jw(self):
         """
         Run the JWST pipeline for all uncal files
@@ -624,7 +641,7 @@ class jw(object):
             saturation_step = SaturationStep()
             # Call using the the output from the previously-run dq_init step
             saturation = saturation_step.run(dq_init)
-            del dq_init ## try to save memory
+            self.delete_object(dq_init) ## try to save memory
     
             # Using the run() method
             superbias_step = SuperBiasStep()
@@ -671,7 +688,7 @@ class jw(object):
                 tiled_custGroup = np.tile(custGroupDQ,[nints,1,1,1])
                 superbias.groupdq = (superbias.groupdq | tiled_custGroup)
                 
-            del saturation ## try to save memory
+            self.delete_object(saturation) ## try to save memory
             
             
             if self.param['ROEBACorrection'] == True:
@@ -689,7 +706,7 @@ class jw(object):
                 refpix_step.side_smoothing_length=self.param['side_smoothing_length']
                 refpix_res = refpix_step.run(superbias)
             
-            del superbias ## try to save memory
+            self.delete_object(superbias) ## try to save memory
             
             # # Linearity Step   
             # Using the run() method
@@ -704,8 +721,9 @@ class jw(object):
                 
             
             linearity = linearity_step.run(refpix_res)
-            del refpix_res ## try to save memory
-    
+            
+            self.delete_object(refpix_res)
+            
             # # Persistence Step
     
             # Using the run() method
@@ -715,7 +733,7 @@ class jw(object):
             persist_step.skip = True
     
             persist = persist_step.run(linearity)
-            del linearity ## try to save memory
+            self.delete_object(linearity) ## try to save memory
     
             # # Dark current step
     
@@ -728,8 +746,8 @@ class jw(object):
             # Call using the persistence instance from the previously-run
             # persistence step
             dark = dark_step.run(persist)
-
-            del persist ## try to save memory
+            
+            self.delete_object(persist)
     
             # # Jump Step
     
@@ -756,8 +774,9 @@ class jw(object):
             # Call using the dark instance from the previously-run
             # dark current subtraction step
             jump = jump_step.run(dark)
-            del dark ## try to save memory
-    
+            
+            self.delete_object(dark)
+            
             # # Ramp Fitting
     
             # In[344]:
@@ -785,9 +804,12 @@ class jw(object):
             
                 # Call using the dark instance from the previously-run
                 # jump step
-                ramp_fit = ramp_fit_step.run(jump)
-                del ramp_fit ## try to save memory
-            del jump ## try to save memory
+                ramp_fit0, ramp_fit1 = ramp_fit_step.run(jump)
+                
+                self.delete_object(ramp_fit0)
+                self.delete_object(ramp_fit1)
+            
+            self.delete_object(jump) ## try to save memory
             
     
     

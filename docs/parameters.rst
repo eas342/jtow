@@ -30,6 +30,17 @@ For example, :code:`['A','B','B','B']` will do bias A, B, B, B, A, B, B, B.
 ~~~~~~~~~~~~~~~~~~~~~~~
 Controls where to find the bias cycle files. For example :code:`data_path/superbias_nrca3_?.fits` will search for :code:`superbias_nrca3_A.fits` and :code:`superbias_nrca3_B.fits` if the biasCycle contains A and B.
 
+:code:`ROEBACorrection`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If :code:`ROEBACorrection` is True, it row-by-row, odd/even by amplifier (ROEBA) correction on each group after bias subtraction instead of the reference pixel correction. If it is False, no ROEBA is done. The reference pixel step is run, which only takes effect if reference pixels are available.
+
+:code:`ROEBAK`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If :code:`ROEBAK` is True, it adds a step to ROEBA that attempts to remove the kTC noise. Only has an effect if :code:`ROEBACorrection` is True. If False, no extra kTC correction will be done. This does a slow-read correction of all groups in a frame, calculates the median pixel for all groups for integration-specific kTC correction. This kTC correction is subtracted from all groups in that integration to find the underlying 1/f noise better. However, the kTC correction is undone after the 1/f correction to be sure it doesn't not introduce any new noise, especially on the source pixels. This is a similar idea to using the :code:`custBias="lineIntercept"` but with undoing the bias.
+
+
 :code:`saveROEBAdiagnostics`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -478,7 +478,7 @@ class jw(object):
             del HDUList_result
         
     
-    def run_roeba(self,superbias,nints,ngroups):
+    def run_roeba(self,superbias):
         """
         Do the ROEBA (row-by-row, odd/even by amplifier algorithm)
         
@@ -510,7 +510,7 @@ class jw(object):
 
         # In[390]:
 
-
+        nints,ngroups,ny,nx = superbias.data.shape
         #phot.showStamps(showPlot=True,boxsize=200,vmin=0,vmax=1)
 
 
@@ -522,30 +522,76 @@ class jw(object):
         ## have to transpose NIRISS and NIRSpec, but not NIRCam
         if superbias.meta.instrument.name == "NIRCAM":
             transposeForROEBA = False
+            backgMask = self.ROEBAmask
         else:
             transposeForROEBA = True
+            if self.ROEBAmask is None:
+                backgMask = self.ROEBAmask
+            else:
+                backgMask = self.ROEBAmask.T
         
         for oneInt in tqdm.tqdm(np.arange(nints)):
-            for oneGroup in np.arange(ngroups):
-                if transposeForROEBA == True:
-                    imgToCorrect = superbias.data[oneInt,oneGroup,:,:].T
-                    if self.ROEBAmask is None:
-                        backgMask = self.ROEBAmask
-                    else:
-                        backgMask = self.ROEBAmask.T
-                else:
-                    imgToCorrect = superbias.data[oneInt,oneGroup,:,:]
-                    backgMask = self.ROEBAmask
+            if self.param['ROEBAK'] == True:
+                iterations = 2
+                fastRead = [False,True]
+                intermediate_result = np.zeros([ngroups,ny,nx])
+                slowReadModelCube = np.zeros([ngroups,ny,nx])
+            else:
+                iterations=1
+                fastRead = [True]
+            
+            roeba_one_int = np.zeros([ngroups,ny,nx])
+            
+            for oneIteration in np.arange(iterations):
+                doFastRead = fastRead[oneIteration]
                 
-                rowSub, modelImg = rowamp_sub.do_backsub(imgToCorrect,
-                                                         phot,amplifiers=self.param['noutputs'],
-                                                         backgMask=backgMask,
-                                                         saveDiagnostics=self.param['saveROEBAdiagnostics'])
-                if transposeForROEBA == True:
-                    refpix_res.data[oneInt,oneGroup,:,:] = rowSub.T
-                else:
-                    refpix_res.data[oneInt,oneGroup,:,:] = rowSub
+                if (self.param['ROEBAK'] == True) & (oneIteration == 2-1):
+                    kTCadjustment = np.median(intermediate_result,axis=0)
+                    cubeToCorrect = intermediate_result - kTCadjustment
+                    
+                    if self.param['saveROEBAdiagnostics'] == True:
+                        origName = deepcopy(refpix_res.meta.filename)
+                        if '.fits' in origName:
+                            outName = origName.replace('.fits','_kTC_int_{:04d}.fits'.format(oneInt))
+                        else:
+                            outName = 'ROEBA_kTC_int_{:04d}.fits'.format(oneInt)
         
+                        outPath = os.path.join(self.output_dir,'diagnostics',outName)
+                        HDUList = fits.PrimaryHDU(kTCadjustment)
+                        HDUList.writeto(outPath,overwrite=True)
+                    
+                else:
+                    cubeToCorrect = superbias.data[oneInt]
+                
+                for oneGroup in np.arange(ngroups):
+                    
+                    if transposeForROEBA == True:
+                        imgToCorrect = cubeToCorrect[oneGroup,:,:].T
+                    else:
+                        imgToCorrect = cubeToCorrect[oneGroup,:,:]
+                    
+                    rowSub, slowImg, fastImg = rowamp_sub.do_backsub(imgToCorrect,
+                                                             phot,amplifiers=self.param['noutputs'],
+                                                             backgMask=backgMask,
+                                                             saveDiagnostics=self.param['saveROEBAdiagnostics'],
+                                                             returnFastSlow=True)
+                    
+                    if (self.param['ROEBAK'] == True) & (oneIteration == 2-1):
+                        groupResult = intermediate_result[oneGroup] - fastImg
+                    else:
+                        groupResult = rowSub
+                    
+                    ## Save on the last iteration
+                    if oneIteration == iterations - 1:
+                        if transposeForROEBA == True:
+                            roeba_one_int[oneGroup,:,:] = groupResult.T
+                        else:
+                            roeba_one_int[oneGroup,:,:] = groupResult
+                    else:
+                        intermediate_result[oneGroup,:,:] = rowSub
+                        slowReadModelCube[oneGroup,:,:] = slowImg
+            
+            refpix_res.data[oneInt,:,:,:] = roeba_one_int
         
         
         # In[328]:
@@ -629,7 +675,7 @@ class jw(object):
             
             
             if self.param['ROEBACorrection'] == True:
-                refpix_res = self.run_roeba(superbias,nints,ngroups)
+                refpix_res = self.run_roeba(superbias)
                 
                 
                 

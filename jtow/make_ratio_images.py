@@ -1,0 +1,36 @@
+# coding: utf-8
+import glob
+import numpy as np
+from astropy.io import fits, ascii
+import tqdm
+import os
+import matplotlib.pyplot as plt
+import pdb
+
+defRefImg = '/fenrirdata1/es_tso/flight_data/01366/nrca3_proc_001/split_output/jw01366002001_04103_00001-seg001_nrca3_uncal_1_rampfitstep_I00117.fits'
+#defRefImg = 'split_output/jw01442001001_04103_00001-seg001_nrca3_uncal_1_rampfitstep_I00005.fits'
+
+#defFileSearch = 'split_output/jw01442001001_04103_00001-seg00*.fits'
+defFileSearch = '/fenrirdata1/es_tso/flight_data/01366/nrca3_proc_001/split_output/*.fits'
+defOutDir = '/fenrirdata1/es_tso/flight_data/01366/nrca3_proc_001/ratio_images'
+
+def make_ratio_images(refImage=defRefImg,fileSearch=defFileSearch,outDir=defOutDir):
+    refImg = fits.getdata(refImage)
+    fileList = np.sort(glob.glob(fileSearch))
+    #os.mkdir('rel_images')
+    
+    for ind in tqdm.tqdm(np.arange(len(fileList))):
+        oneFile = fileList[ind]
+        fig,ax = plt.subplots()
+        thisImg = fits.getdata(oneFile)
+        ratioImg = thisImg / refImg
+        pdata = ax.imshow(ratioImg,vmin=0.98,vmax=1.02,origin='lower')
+        
+        ax.set_xlim(950,1150)
+        ax.set_title("Int {}".format(ind))
+        outName = os.path.basename(oneFile).replace('.fits','.png')
+        fig.colorbar(pdata)
+        fig.savefig(os.path.join(outDir,outName))
+        plt.close(fig)
+        
+    

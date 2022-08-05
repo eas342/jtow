@@ -607,7 +607,7 @@ class jw(object):
             refpix_res.to_fits(outPath,overwrite=True)
         return refpix_res
     
-    def delete_object(self,obj):
+    def delete_object(self,obj,step=None):
         """
         Try to delete an object's data to free up memory
         """
@@ -622,7 +622,14 @@ class jw(object):
         # if hasattr(obj,'refout'):
         #     del obj.refout
         #
-        del obj
+        if step is None:
+            del obj
+        else:
+            if step.skip == True:
+                pass
+            else:
+                del obj
+        
         gc.collect()
         pass
     
@@ -691,7 +698,7 @@ class jw(object):
                 tiled_custGroup = np.tile(custGroupDQ,[nints,1,1,1])
                 superbias.groupdq = (superbias.groupdq | tiled_custGroup)
                 
-            self.delete_object(saturation) ## try to save memory
+            self.delete_object(saturation,step=superbias_step) ## try to save memory
             
             
             if self.param['ROEBACorrection'] == True:
@@ -709,7 +716,7 @@ class jw(object):
                 refpix_step.side_smoothing_length=self.param['side_smoothing_length']
                 refpix_res = refpix_step.run(superbias)
             
-            self.delete_object(superbias) ## try to save memory
+                self.delete_object(superbias,step=refpix_step) ## try to save memory
             
             # # Linearity Step   
             # Using the run() method
@@ -725,35 +732,36 @@ class jw(object):
             
             linearity = linearity_step.run(refpix_res)
             
-            self.delete_object(refpix_res)
+            self.delete_object(refpix_res,step=linearity_step)
             
             # # Persistence Step
     
             # Using the run() method
-            persist_step = PersistenceStep()
-
-            # skip for now since ref files are zeros
-            persist_step.skip = True
-    
-            persist = persist_step.run(linearity)
-            self.delete_object(linearity) ## try to save memory
+            #persist_step = PersistenceStep()
+            #
+            ## skip for now since ref files are zeros
+            #persist_step.skip = True
+            #
+            #persist = persist_step.run(linearity)
+            #self.delete_object(linearity) ## try to save memory
     
             # # Dark current step
     
             # Using the run() method
-            dark_step = DarkCurrentStep()
-    
+            #dark_step = DarkCurrentStep()
+            #
             # There was a CRDS error so I'm skipping
-            dark_step.skip = True
+            #dark_step.skip = True
     
             # Call using the persistence instance from the previously-run
             # persistence step
-            dark = dark_step.run(persist)
+            #dark = dark_step.run(persist)
             
-            self.delete_object(persist)
-    
+            #self.delete_object(persist)
+
+            ## to save memory, just move on without running a step with skip=True
+            dark_result = linearity
             # # Jump Step
-    
             # In[335]:
     
     
@@ -776,9 +784,9 @@ class jw(object):
             
             # Call using the dark instance from the previously-run
             # dark current subtraction step
-            jump = jump_step.run(dark)
+            jump = jump_step.run(dark_result)
             
-            self.delete_object(dark)
+            self.delete_object(dark,step=jump_step)
             
             # # Ramp Fitting
     

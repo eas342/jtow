@@ -38,7 +38,7 @@ def make_pairs(fileSearch = 'proc_nrca3_p012_flight_singleBias/jw*_uncal_jumpste
             intNum = origHead['INTSTART'] + oneInt
             intHDU = HDUList['INT_TIMES']
     
-            intStart_appr = texp_start + (origHead['TFRAME'] + origHead['EFFINTTM']) * intNum * u.second
+            intStart_appr = texp_start + (origHead['TFRAME'] + origHead['EFFINTTM']) * (intNum-1) * u.second
             intStart_better_UT = Time(HDUList['INT_TIMES'].data['int_start_MJD_UTC'][oneInt],format='mjd')
             intStart_better_BJD = Time(HDUList['INT_TIMES'].data['int_start_BJD_TDB'][oneInt],format='mjd')
     
@@ -54,14 +54,16 @@ def make_pairs(fileSearch = 'proc_nrca3_p012_flight_singleBias/jw*_uncal_jumpste
                 ## also doesn't include the fast frame resets but those are really small corrections
                 groupOffset = (oneGroup + 0.5) * origHead['TGROUP'] * u.second
                 thisT = intStart_appr + groupOffset
-                primHDU.header['DATE-OBS'] = (thisT.fits,'approximate UT time,backup to INT_TIMES')
+                primHDU.header['BACKUPDT'] = (thisT.fits,'approximate UT date and time,backup to INT_TIMES')
             
                 ## time from INT_TIMES extension
                 thisT2 = intStart_better_UT + groupOffset
                 primHDU.header['DATEGRUT'] = (thisT2.fits,'UT time from INT_TIMES extension + group times')
                 thisT3 = intStart_better_BJD + groupOffset
                 primHDU.header['DATEGBJD'] = (thisT3.fits,'BJD time from INT_TIMES extension + group times')
-            
+                primHDU.header['OBS-DATE'] = (thisT3.fits,'BJD time from INT_TIMES extension + group times')
+                
+                
                 hduSCI = fits.ImageHDU(cds)
                 hduSCI.header['BUNIT'] = ('DN/s','count rate')
                 hduSCI.name = 'SCI'

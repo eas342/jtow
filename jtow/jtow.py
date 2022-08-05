@@ -611,19 +611,20 @@ class jw(object):
         """
         Try to delete an object's data to free up memory
         """
-        if hasattr(obj,'data'):
-            del obj.data
-        if hasattr(obj,'groupdq'):
-            del obj.groupdq
-        if hasattr(obj,'err'):
-            del obj.err
-        if hasattr(obj,'dq'):
-            del obj.dq
-        if hasattr(obj,'refout'):
-            del obj.refout
-        
+        # if hasattr(obj,'data'):
+        #     del obj.data
+        # if hasattr(obj,'groupdq'):
+        #     del obj.groupdq
+        # if hasattr(obj,'err'):
+        #     del obj.err
+        # if hasattr(obj,'dq'):
+        #     del obj.dq
+        # if hasattr(obj,'refout'):
+        #     del obj.refout
+        #
         del obj
         gc.collect()
+        pass
     
     def run_jw(self):
         """

@@ -619,6 +619,8 @@ class jw(object):
             del obj.err
         if hasattr(obj,'dq'):
             del obj.dq
+        if hasattr(obj,'refout'):
+            del obj.refout
         
         del obj
         gc.collect()

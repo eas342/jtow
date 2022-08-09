@@ -786,7 +786,7 @@ class jw(object):
             # dark current subtraction step
             jump = jump_step.run(dark_result)
             
-            self.delete_object(dark,step=jump_step)
+            self.delete_object(dark_result,step=jump_step)
             
             # # Ramp Fitting
     

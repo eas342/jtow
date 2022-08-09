@@ -16,7 +16,7 @@ import glob
 import crds
 import tqdm
 
-def quick_ff_divide(searchPath):
+def quick_ff_divide(searchPath,customFlat=None):
     """
     Divide the files by a flat field
     """
@@ -55,8 +55,12 @@ def quick_ff_divide(searchPath):
                 flatName = recs['dflat']
             else:
                 flatName = recs['flat']
+
+        if customFlat is None:
+            flatPath = os.path.join(crds_path,flatName)
+        else:
+            flatPath = customFlat
         
-        flatPath = os.path.join(crds_path,flatName)
         if instrumName == 'nirspec':
             flatCube = fits.getdata(flatPath)
             nPlanes = flatCube.shape[0]

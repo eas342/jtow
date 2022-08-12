@@ -40,7 +40,6 @@ from jwst.persistence import PersistenceStep
 from jwst.dark_current import DarkCurrentStep
 from jwst.jump import JumpStep
 from jwst.ramp_fitting import RampFitStep
-from . import unweighted_rampfitstep
 from jwst import datamodels
 
 import warnings
@@ -800,14 +799,7 @@ class jw(object):
                 # Using the run() method
                 ramp_fit_step = RampFitStep()
                 ramp_fit_step.weighting = self.param['rampFitWeighting']
-                # if self.param['rampFitWeighting'] == 'optimal':
-                #     ramp_fit_step = RampFitStep()
-                # elif self.param['rampFitWeighting'] == 'unweighted'
-                #     ramp_fit_step = unweighted_rampfitstep.RampFitStep()
-                #     pdb.set_trace()
-                # else:
-                #     raise Exception("unrecognized ramp rampFitWeighting {}".format(self.param['rampFitWeighting']))
-                #
+                
                 ramp_fit_step.maximum_cores = self.max_cores
     
                 ramp_fit_step.output_dir = self.output_dir

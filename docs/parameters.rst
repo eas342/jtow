@@ -78,6 +78,11 @@ Do a simple line fit rather than the most-optimal (right now ordinary least squa
 * :code:`'Both'` Both the jwst fits and simple slopes are performed.
 * :code:`'Only'` Only simple slopes are calculated and the (slow) most-optimal fit is skipped.
 
+:code:`rampFitWeighting`
+~~~~~~~~~~~~~~~~~~~~~~~~
+Pass the weighting scheme along to the ramp fit step. If :code:`rampFitWeighting` is 'optimal' it will use optimal weights. If :code:`rampFitWeighting` is 'unweighted', not weighting of groups up the ramp is performed - this approaches last minus first for bright targets.
+More info is available at the  `JWST pipelin ramp fitting description page <https://jwst-pipeline.readthedocs.io/en/latest/jwst/ramp_fitting/description.html>`_
+
 :code:`side_smoothing_length`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Set the side smoothing length for reference pixels. This is passed to the :code:`jwst` reference pixel step. This does not affect ROEBA so if :code:`ROEBACorrection` is set to :code:`True`, this will not matter (in the current version of jtow at least).

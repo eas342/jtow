@@ -27,7 +27,7 @@ def make_ratio_images(refImage=defRefImg,fileSearch=defFileSearch,outDir=defOutD
         pdata = ax.imshow(ratioImg,vmin=0.98,vmax=1.02,origin='lower')
         
         ax.set_xlim(950,1150)
-        ax.set_title("Int {}".format(ind))
+        ax.set_title("Image {}".format(ind))
         outName = os.path.basename(oneFile).replace('.fits','.png')
         fig.colorbar(pdata)
         fig.savefig(os.path.join(outDir,outName))

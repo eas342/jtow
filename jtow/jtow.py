@@ -574,7 +574,8 @@ class jw(object):
                                                              phot,amplifiers=self.param['noutputs'],
                                                              backgMask=backgMask,
                                                              saveDiagnostics=self.param['saveROEBAdiagnostics'],
-                                                             returnFastSlow=True)
+                                                             returnFastSlow=True,
+                                                             colByCol=self.param['colByCol'])
                     
                     if (self.param['ROEBAK'] == True) & (oneIteration == 2-1):
                         groupResult = intermediate_result[oneGroup] - fastImg

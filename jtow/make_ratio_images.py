@@ -16,7 +16,7 @@ defFileSearch = '/fenrirdata1/es_tso/flight_data/01366/nrca3_proc_001/split_outp
 defOutDir = '/fenrirdata1/es_tso/flight_data/01366/nrca3_proc_001/ratio_images'
 
 def make_ratio_images(refImage=defRefImg,fileSearch=defFileSearch,outDir=defOutDir,
-                      saveFits=False):
+                      saveFits=False,xLim=[950,1150]):
     refImg = fits.getdata(refImage)
     fileList = np.sort(glob.glob(fileSearch))
     #os.mkdir('rel_images')
@@ -37,8 +37,9 @@ def make_ratio_images(refImage=defRefImg,fileSearch=defFileSearch,outDir=defOutD
         ratioImg = thisImg / refImg
         pdata = ax.imshow(ratioImg,vmin=0.98,vmax=1.02,origin='lower')
         
-        ax.set_xlim(950,1150)
+        ax.set_xlim(xLim[0],xLim[1])
         ax.set_title("Image {}".format(ind))
+        
         outName = os.path.basename(oneFile).replace('.fits','.png')
         fig.colorbar(pdata)
         fig.savefig(os.path.join(outDir,outName))

@@ -40,6 +40,9 @@ If :code:`ROEBACorrection` is True, it row-by-row, odd/even by amplifier (ROEBA)
 
 If :code:`ROEBAK` is True, it adds a step to ROEBA that attempts to remove the kTC noise. Only has an effect if :code:`ROEBACorrection` is True. If False, no extra kTC correction will be done. This does a slow-read correction of all groups in a frame, calculates the median pixel for all groups for integration-specific kTC correction. This kTC correction is subtracted from all groups in that integration to find the underlying 1/f noise better. However, the kTC correction is undone after the 1/f correction to be sure it doesn't not introduce any new noise, especially on the source pixels. This is a similar idea to using the :code:`custBias="lineIntercept"` but with undoing the bias.
 
+:code:`colByCol`
+~~~~~~~~~~~~~~~~
+If :code:`colByCol` is True, ROEBA will use the median of each column to estimate the slow-read correction. If False, it will subtract the median of all odd columns from all odd columns within an amplifier and the median of all even columns from all even columns within an amplifier.
 
 :code:`saveROEBAdiagnostics`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

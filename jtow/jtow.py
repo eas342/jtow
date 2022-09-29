@@ -241,7 +241,7 @@ class jw(object):
                     mask1[:,0:4] = False
                     mask1[:,-4:] = False
                     if firstHead['FILTER'] == 'F444W':
-                        mask1[12:57,794:2045] = False
+                        mask1[4:,637:2045] = False
                     elif firstHead['FILTER'] == 'F322W2':
                         mask1[4:,0:1846] = False
                     else:

@@ -52,6 +52,7 @@ import gc
 from tshirt.pipeline import phot_pipeline
 from tshirt.pipeline.instrument_specific import rowamp_sub
 import tqdm
+from splintegrate import splintegrate
 
 path_to_defaults = "params/default_params.yaml"
 defaultParamPath = pkg_resources.resource_filename('jtow',path_to_defaults)
@@ -828,3 +829,16 @@ class jw(object):
     
         executionTime = (time.time() - startTime)
         print('Stage 1 Execution Time in Seconds: ' + str(executionTime)) #Time how long this step takes
+
+    def splintegrate(self):
+        """
+        Split up the rateints files into individual ones
+        """
+        filesToSplit = os.path.join(self.param['outputDir'],'*1_rampfitstep.fits')
+        splitDir = os.path.join(self.param['outputDir'],'split_output')
+        splintegrate.run_on_multiple(inFiles=filesToSplit,
+                                    outDir='split_output',overWrite=True,
+                                    detectorName=None,
+                                    flipToDet=False,
+                                    mirageSeedFile=False)
+        

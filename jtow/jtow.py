@@ -835,9 +835,9 @@ class jw(object):
         Split up the rateints files into individual ones
         """
         filesToSplit = os.path.join(self.param['outputDir'],'*1_rampfitstep.fits')
-        splitDir = os.path.join(self.param['outputDir'],'split_output')
+        self.splitDir = os.path.join(self.param['outputDir'],'split_output')
         splintegrate.run_on_multiple(inFiles=filesToSplit,
-                                    outDir='split_output',overWrite=True,
+                                    outDir=self.splitDir,overWrite=True,
                                     detectorName=None,
                                     flipToDet=False,
                                     mirageSeedFile=False)

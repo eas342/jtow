@@ -53,6 +53,7 @@ from tshirt.pipeline import phot_pipeline
 from tshirt.pipeline.instrument_specific import rowamp_sub
 import tqdm
 from splintegrate import splintegrate
+from . import quick_ff_divide
 
 path_to_defaults = "params/default_params.yaml"
 defaultParamPath = pkg_resources.resource_filename('jtow',path_to_defaults)
@@ -164,6 +165,7 @@ class jw(object):
         self.output_dir = self.param["outputDir"]
         
         self.diagnostic_dir = os.path.join(self.param["outputDir"],'diagnostics')
+        self.splitDir = os.path.join(self.param['outputDir'],'split_output')
         
         ## make sure the directories exist
         for oneDir in [self.output_dir,self.diagnostic_dir]:
@@ -835,10 +837,21 @@ class jw(object):
         Split up the rateints files into individual ones
         """
         filesToSplit = os.path.join(self.param['outputDir'],'*1_rampfitstep.fits')
-        self.splitDir = os.path.join(self.param['outputDir'],'split_output')
         splintegrate.run_on_multiple(inFiles=filesToSplit,
                                     outDir=self.splitDir,overWrite=True,
                                     detectorName=None,
                                     flipToDet=False,
                                     mirageSeedFile=False)
         
+    def do_flat(self):
+        """
+        Flat field the split up (ie. splintegrated) rateints results
+        """
+        filesToFlat = os.path.join(self.splitDir,'*.fits')
+        quick_ff_divide.quick_ff_divide(filesToFlat)
+        
+    def run_all(self):
+        self.run_jw()
+        self.splintegrate()
+        self.do_flat()
+    

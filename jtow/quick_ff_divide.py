@@ -58,6 +58,8 @@ def quick_ff_divide(searchPath,customFlat=None):
 
         if customFlat is None:
             flatPath = os.path.join(crds_path,flatName)
+            if os.path.exists(flatPath) == False:
+                crds.getreferences(head,reftypes=['flat'])
         else:
             flatPath = customFlat
         

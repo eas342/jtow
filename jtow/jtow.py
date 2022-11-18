@@ -54,6 +54,7 @@ from tshirt.pipeline.instrument_specific import rowamp_sub
 import tqdm
 from splintegrate import splintegrate
 from . import quick_ff_divide
+from . import temporal_clean
 
 path_to_defaults = "params/default_params.yaml"
 defaultParamPath = pkg_resources.resource_filename('jtow',path_to_defaults)
@@ -849,7 +850,16 @@ class jw(object):
         """
         filesToFlat = os.path.join(self.splitDir,'*.fits')
         quick_ff_divide.quick_ff_divide(filesToFlat)
-        
+    
+    def temporal_clean(self):
+        """
+        Do a sigma clipping clean
+        """
+        filesToClean = os.path.join(self.splitDir,'ff_div','*.fits')
+        cleanedPath = os.path.join(self.splitDir,'ff_cleaned')
+        temporal_clean.clean_data(searchPath=fileToClean,
+                                  savePath=cleanedPath)
+    
     def run_all(self):
         self.run_jw()
         self.splintegrate()

@@ -857,7 +857,7 @@ class jw(object):
         """
         filesToClean = os.path.join(self.splitDir,'ff_div','*.fits')
         cleanedPath = os.path.join(self.splitDir,'ff_cleaned')
-        temporal_clean.clean_data(searchPath=fileToClean,
+        temporal_clean.clean_data(searchPath=filesToClean,
                                   savePath=cleanedPath)
     
     def run_all(self):

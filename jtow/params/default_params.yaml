@@ -26,3 +26,5 @@ jumpStepFlag4Neighbors: True
 suppressOneGroup: True
 custGroupDQfile: null
 rampFitWeighting: 'optimal'
+smoothSlowDir: null
+useGrismRefpx: False

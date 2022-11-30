@@ -242,12 +242,22 @@ class jw(object):
                     mask1 = np.ones([Ny,Nx],dtype=bool)
                     
                     #mask1[0:4,:] = False
-                    mask1[:,0:4] = False
-                    mask1[:,-4:] = False
+                    useSideRef = self.param['useGrismRefpx']
+                    
+                    if (useSideRef == True) & (firstHead['FILTER'] == 'F322W2'):
+                        pass ## keep mask1[:,0:4] = True
+                    else:
+                        mask1[:,0:4] = False
+                    
+                    if (useSideRef == True) & (firstHead['FILTER'] == 'F444W'):
+                        pass ## keep mask1[:,-4:] = True
+                    else:
+                        mask1[:,-4:] = False
+                    
                     if firstHead['FILTER'] == 'F444W':
                         mask1[4:,637:2045] = False
                     elif firstHead['FILTER'] == 'F322W2':
-                        mask1[4:,0:1846] = False
+                        mask1[4:,4:1846] = False
                     else:
                         raise NotImplementedError
                     
@@ -579,7 +589,8 @@ class jw(object):
                                                              backgMask=backgMask,
                                                              saveDiagnostics=self.param['saveROEBAdiagnostics'],
                                                              returnFastSlow=True,
-                                                             colByCol=self.param['colByCol'])
+                                                             colByCol=self.param['colByCol'],
+                                                             smoothSlowDir=self.param['smoothSlowDir'])
                     
                     if (self.param['ROEBAK'] == True) & (oneIteration == 2-1):
                         groupResult = intermediate_result[oneGroup] - fastImg

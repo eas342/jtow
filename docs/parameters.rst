@@ -88,7 +88,15 @@ More info is available at the  `JWST pipelin ramp fitting description page <http
 
 :code:`side_smoothing_length`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set the side smoothing length for reference pixels. This is passed to the :code:`jwst` reference pixel step. This does not affect ROEBA so if :code:`ROEBACorrection` is set to :code:`True`, this will not matter (in the current version of jtow at least).
+Set the side smoothing length for reference pixels. This is passed to the :code:`jwst` reference pixel step. This does not affect ROEBA so if :code:`ROEBACorrection` is set to :code:`True`, this will not matter (in the current version of jtow at least). For ROEBA, use :code:`smoothSlowDir`
+
+:code:`smoothSlowDir`
+~~~~~~~~~~~~~~~~~~~~~~
+If :code:`None` ('null' in .yaml file), no smoothing is done with ROEBA. If set to an int or float, a Savgol filter is applied along the slow-read direction to smooth the ROEBA model.
+
+:code:`useGrismRefpx`
+~~~~~~~~~~~~~~~~~~~~~
+Use the reference pixels for ROEBA corrections? If True, the left refpix will be used for F322W2 data and right refpix will be used for F444W data. If False, only the background pixels will be used from the rightmost amplifier (F322W2 data) or leftmost amplifier (F444W data).
 
 :code:`custGroupDQfile`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

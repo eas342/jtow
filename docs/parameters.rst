@@ -33,7 +33,7 @@ Controls where to find the bias cycle files. For example :code:`data_path/superb
 :code:`ROEBACorrection`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If :code:`ROEBACorrection` is True, it row-by-row, odd/even by amplifier (ROEBA) correction on each group after bias subtraction instead of the reference pixel correction. If it is False, no ROEBA is done. The reference pixel step is run, which only takes effect if reference pixels are available.
+If :code:`ROEBACorrection` is True, it row-by-row, odd/even by amplifier (ROEBA) correction on each group after bias subtraction instead of the reference pixel correction. If it is False, no ROEBA is done. The reference pixel step is run, which only takes effect if reference pixels are available. If ROEBCorrection is :code:`GROEBA`, then it uses a Gaussian Process train-1/f noise model
 
 :code:`ROEBAK`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

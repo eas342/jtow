@@ -584,13 +584,19 @@ class jw(object):
                     else:
                         imgToCorrect = cubeToCorrect[oneGroup,:,:]
                     
+                    if self.param['ROEBACorrection'] == 'GROEBA':
+                        GROEBA = True
+                    else:
+                        GROEBA = False
+
                     rowSub, slowImg, fastImg = rowamp_sub.do_backsub(imgToCorrect,
                                                              phot,amplifiers=self.param['noutputs'],
                                                              backgMask=backgMask,
                                                              saveDiagnostics=self.param['saveROEBAdiagnostics'],
                                                              returnFastSlow=True,
                                                              colByCol=self.param['colByCol'],
-                                                             smoothSlowDir=self.param['smoothSlowDir'])
+                                                             smoothSlowDir=self.param['smoothSlowDir'],
+                                                             GROEBA=GROEBA)
                     
                     if (self.param['ROEBAK'] == True) & (oneIteration == 2-1):
                         groupResult = intermediate_result[oneGroup] - fastImg
@@ -716,7 +722,7 @@ class jw(object):
             self.delete_object(saturation,step=superbias_step) ## try to save memory
             
             
-            if self.param['ROEBACorrection'] == True:
+            if (self.param['ROEBACorrection'] == True) | (self.param['ROEBACorrection'] == "GROEBA"):
                 refpix_res = self.run_roeba(superbias)
                 
                 

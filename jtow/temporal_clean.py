@@ -104,9 +104,10 @@ def clean_from_fileList(fileList,savePath,
     #    plt.plot(intNumArr[outPt],
     #             diffCube[outPt,outY[ptLook],outX[ptLook]],'x',color=thisCol)
         yGood = imgCube[goodPt,outY[ptLook],outX[ptLook]]
-        f_interp = interp1d(intNumArr[goodPt],yGood,
-                           bounds_error=False,fill_value=np.nanmedian(yGood))
-        cleanedCube[outPt,outY[ptLook],outX[ptLook]] = f_interp(intNumArr[outPt])
+        if np.sum(goodPt) > 10: ## need a least 10 points for interpolation
+            f_interp = interp1d(intNumArr[goodPt],yGood,
+                                bounds_error=False,fill_value=np.nanmedian(yGood))
+            cleanedCube[outPt,outY[ptLook],outX[ptLook]] = f_interp(intNumArr[outPt])
     #    plt.plot(intNumArr[outPt],cleanedCube[outPt,outY[ptLook],outX[ptLook]],'o',
     #             color=thisCol)
     

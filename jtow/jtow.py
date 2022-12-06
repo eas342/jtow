@@ -213,6 +213,12 @@ class jw(object):
         """
         if self.param['autoROEBAmasks'] == True:
             firstHead = fits.getheader(self.all_uncal_files[0])
+            if self.param['forceHeaderChange'] is None:
+                pass
+            else:
+                for oneKey in self.param['forceHeaderChange'].keys():
+                    firstHead[oneKey] = self.param['forceHeaderChange'][oneKey]
+                
             firstHead_sci = fits.getheader(self.all_uncal_files[0],extname='SCI')
             Nx = firstHead_sci['NAXIS1']
             Ny = firstHead_sci['NAXIS2']
@@ -588,7 +594,7 @@ class jw(object):
                         GROEBA = True
                     else:
                         GROEBA = False
-
+                    
                     rowSub, slowImg, fastImg = rowamp_sub.do_backsub(imgToCorrect,
                                                              phot,amplifiers=self.param['noutputs'],
                                                              backgMask=backgMask,

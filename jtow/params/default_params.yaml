@@ -28,3 +28,4 @@ custGroupDQfile: null
 rampFitWeighting: 'optimal'
 smoothSlowDir: null
 useGrismRefpx: False
+forceHeaderChange: null

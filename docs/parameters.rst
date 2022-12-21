@@ -80,6 +80,7 @@ Do a simple line fit rather than the most-optimal (right now ordinary least squa
 * :code:`None` ('null' in .yaml file), no simple slopes are done. Regular jwst pipeline ramp fits.
 * :code:`'Both'` Both the jwst fits and simple slopes are performed.
 * :code:`'Only'` Only simple slopes are calculated and the (slow) most-optimal fit is skipped.
+* :code:`'Last Group'` Save the last group of every integration divided by the estimated int time?
 
 :code:`rampFitWeighting`
 ~~~~~~~~~~~~~~~~~~~~~~~~

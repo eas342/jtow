@@ -135,6 +135,10 @@ class jw(object):
         elif self.param['simpleSlopes'] == 'Only':
             self.do_simple_ramp_fit = True
             self.do_full_ramp_fit = False
+        elif self.param['simpleSlopes'] == 'LastGroup':
+            self.do_simple_ramp_fit = True
+            self.do_full_ramp_fit = False
+            self.do_simple_ramp_fit = 'LastGroup'
         else:
             raise Exception("Unrecognized simpleSlopes option {}. Options are None, Both and Only".format(simpelSlopes))
         
@@ -443,13 +447,20 @@ class jw(object):
             
         return result
     
-    def simple_ramp_fit(self,ramp4D,uncal_name):
-        nint, ngroup, ny, nx = ramp4D.shape
-        ramp4D.meta.exposure
-        
-        tgroup = ramp4D.meta.exposure.group_time
-        x = np.arange(ngroup) * tgroup
-        
+    def calculate_slope_from_last_group(self,x,ramp4D,nint,ngroup,ny,nx):
+        """
+        Save the last group of all integrations
+        """
+
+        rampLast = ramp4D.data[:,-1] / x[-1]
+
+        return [rampLast]
+
+
+    def calculate_simple_ramp_fit(self,x,ramp4D,nint,ngroup,ny,nx):
+        """
+        Calculate the line fit to the ramp
+        """
         rampfit3D_slope = np.zeros([nint,ny,nx])
         rampfit3D_intercept = np.zeros([nint,ny,nx])
         for intNum in tqdm.tqdm(np.arange(nint)):
@@ -462,6 +473,31 @@ class jw(object):
             rampfit3D_slope[intNum] = slope2D
             rampfit3D_intercept[intNum] = intercept2D
         
+        return [rampfit3D_slope, rampfit3D_intercept]
+
+    def simple_ramp_fit(self,ramp4D,uncal_name):
+        self.custom_ramp_fit(ramp4D,uncal_name,method='simple slope')
+
+    def custom_ramp_fit(self,ramp4D,uncal_name,method='simple slope'):
+        """ Calculate my own fit to a ramp """
+        
+        nint, ngroup, ny, nx = ramp4D.shape
+        ramp4D.meta.exposure
+        
+        tgroup = ramp4D.meta.exposure.group_time
+        tframe = ramp4D.meta.exposure.frame_time
+        x = np.arange(ngroup) * tgroup + tframe
+        
+        if method == 'simple slope':
+            fits3DResults = self.calculate_simple_ramp_fit(x,ramp4D,nint,ngroup,ny,nx)
+            result_names = ['_simple_slopes.fits','_simple_intercepts.fits']
+        elif method == 'last group':
+            fits3DResults = self.calculate_slope_from_last_group(x,ramp4D,nint,ngroup,ny,nx)
+            result_names = ['_lstGrp_slopes.fits']
+
+        else:
+            raise Exception("Unrecognized ramp fit method {}".format(method))
+            
         ## Save the result
         origHead = fits.getheader(uncal_name)
         
@@ -474,13 +510,15 @@ class jw(object):
         else:
             saveDQ = False
         
-        for oneOutput in ['slopes','intercepts']:
-            if oneOutput == 'slopes':
-                outSuffix = '_simple_slopes.fits'
-                result3D = rampfit3D_slope
-            else:
-                outSuffix = '_simple_intercepts.fits'
-                result3D = rampfit3D_intercept
+        if hasattr(ramp4D,'int_times'):
+            saveIntTimes = True
+            intTimesHDU = fits.TableHDU(ramp4D.int_times)
+            intTimesHDU.name = 'INT_TIMES'  
+        else:
+            saveIntTimes = False
+
+        for ind,outSuffix in enumerate(result_names):
+            result3D = fits3DResults[ind]
             
             outName_result = ramp4D.meta.filename.replace('.fits',outSuffix).replace('_uncal','')
             outPath_result = os.path.join(self.output_dir,outName_result)
@@ -491,6 +529,8 @@ class jw(object):
             ## Also save the DQ
             if saveDQ == True:
                 HDUList_result.append(dqHDU)
+            if saveIntTimes == True:
+                HDUList_result.append(intTimesHDU)
             
             print("Saving result to {}".format(outPath_result))
             HDUList_result.writeto(outPath_result,overwrite=True)
@@ -822,7 +862,11 @@ class jw(object):
             ## Do a simple ramp fit if parameters are set
             if self.do_simple_ramp_fit == True:
                 self.simple_ramp_fit(jump,uncal_file)
-            
+            elif self.do_simple_ramp_fit == 'LastGroup':
+                self.custom_ramp_fit(jump,uncal_file,method='last group')
+            else:
+                raise Exception("Unrecognized value of do_simple_ramp_fit {}".format(self.do_simple_ramp_fit))
+
             if self.do_full_ramp_fit == True:
                 # Using the run() method
                 ramp_fit_step = RampFitStep()
@@ -860,7 +904,12 @@ class jw(object):
         """
         Split up the rateints files into individual ones
         """
-        filesToSplit = os.path.join(self.param['outputDir'],'*1_rampfitstep.fits')
+        if self.param['simpleSlopes'] == 'LastGroup':
+            searchString = '*_lstGrp_slopes.fits'
+        else:
+            searchString = '*1_rampfitstep.fits'
+        
+        filesToSplit = os.path.join(self.param['outputDir'],searchString)
         splintegrate.run_on_multiple(inFiles=filesToSplit,
                                     outDir=self.splitDir,overWrite=True,
                                     detectorName=None,

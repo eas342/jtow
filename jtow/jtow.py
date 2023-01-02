@@ -936,4 +936,5 @@ class jw(object):
         self.run_jw()
         self.splintegrate()
         self.do_flat()
+        self.temporal_clean()
     

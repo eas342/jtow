@@ -864,6 +864,8 @@ class jw(object):
                 self.simple_ramp_fit(jump,uncal_file)
             elif self.do_simple_ramp_fit == 'LastGroup':
                 self.custom_ramp_fit(jump,uncal_file,method='last group')
+            elif self.do_simple_ramp_fit == False:
+                pass
             else:
                 raise Exception("Unrecognized value of do_simple_ramp_fit {}".format(self.do_simple_ramp_fit))
 

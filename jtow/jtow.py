@@ -15,6 +15,7 @@ from jwst.associations.lib.rules_level2_base import DMSLevel2bBase
 
 #General
 from astropy.io import fits, ascii
+from astropy.table import Table
 import matplotlib.pyplot as plt
 import csv
 import numpy as np
@@ -673,6 +674,49 @@ class jw(object):
             outPath = os.path.join(self.output_dir,outName)
             refpix_res.to_fits(outPath,overwrite=True)
         return refpix_res
+    
+    def collect_refpix_series(self):
+        ## Get the reference pixel mask from a processed file
+        
+        procFileSearch = os.path.join(self.param['outputDir'],"*0_rampfitstep.fits")
+        procFiles = np.sort(glob.glob(procFileSearch))
+        if len(procFiles) == 0:
+            raise Exception("No files found at {}. Try running the pipeline first".format(procFileSearch))
+        else:
+            oneRateFile = procFiles[len(procFiles) // 2]
+            HDUList_one_rate = fits.open(oneRateFile)
+            refpix_mask = (HDUList_one_rate['DQ'].data & 2**31) > 0
+        
+        refpix_mean_series = []
+        refpix_median_series = []
+        int_count_arr = []
+        for uncal_file in tqdm.tqdm(self.all_uncal_files):
+            HDUList = fits.open(uncal_file)
+            dm_uncal = jwst.datamodels.open(HDUList)
+            medRefpix = np.median(np.median(HDUList['SCI'].data[:,:,refpix_mask],axis=2),axis=1)
+            meanRefpix = np.mean(np.mean(HDUList['SCI'].data[:,:,refpix_mask],axis=2),axis=1)
+            refpix_mean_series = np.append(refpix_mean_series,meanRefpix)
+            refpix_median_series = np.append(refpix_median_series,medRefpix)
+
+            int_start = dm_uncal.meta.exposure.integration_start
+            nint = HDUList['SCI'].data.shape[0]
+            int_arr = int_start + np.arange(nint)
+            int_count_arr = np.append(int_count_arr,int_arr)
+
+            HDUList.close()
+        
+        t = Table()
+        t['int'] = int_count_arr
+        t['median refpix'] = refpix_median_series
+        t['mean refpix'] = refpix_mean_series
+        outName = 'refpix_series.csv'
+        outDir = os.path.join(self.param['outputDir'],'refpix')
+        outPath = os.path.join(outDir,outName)
+        if os.path.exists(outDir) == False:
+            os.makedirs(outDir)
+        print("Writing refpix table to {}".format(outPath))
+        t.write(outPath,overwrite=True)
+
     
     def delete_object(self,obj,step=None):
         """

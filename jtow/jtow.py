@@ -709,7 +709,7 @@ class jw(object):
         t['int'] = int_count_arr
         t['median refpix'] = refpix_median_series
         t['mean refpix'] = refpix_mean_series
-        outName = 'refpix_series.csv'
+        outName = '{}_refpix_series.csv'.format(self.descrip)
         outDir = os.path.join(self.param['outputDir'],'refpix')
         outPath = os.path.join(outDir,outName)
         if os.path.exists(outDir) == False:

@@ -687,11 +687,33 @@ class jw(object):
             HDUList_one_rate = fits.open(oneRateFile)
             refpix_mask = (HDUList_one_rate['DQ'].data & 2**31) > 0
         
+            oneHead = HDUList_one_rate[0].header
+            nAmps = oneHead['NOUTPUTS']
+            ampMasks = []
+            if nAmps == 4:
+                ampStarts = [0,512,1024,1536]
+                ampEnds = [512,1024,1536,2048]
+                nY, nX = HDUList_one_rate['SCI'].data.shape
+                ygrid, xgrid = np.mgrid[0:nY,0:nX]
+                for oneAmp in range(nAmps):
+                    pxInAmp = ((xgrid >= ampStarts[oneAmp]) & 
+                                (xgrid < ampEnds[oneAmp]))
+                    thisAmpMask = pxInAmp & refpix_mask
+                    ampMasks.append(thisAmpMask)
+            else:
+                ampMasks = [refpix_mask]
+
         refpix_mean_series = []
         refpix_median_series = []
         int_count_arr = []
-        for uncal_file in tqdm.tqdm(self.all_uncal_files):
+        nFile = len(self.all_uncal_files)
+        ampMedian_series = [None] * nAmps
+
+        for i in tqdm.tqdm(range(nFile)):
+            uncal_file = self.all_uncal_files[i]
             HDUList = fits.open(uncal_file)
+
+
             dm_uncal = jwst.datamodels.open(HDUList)
             medRefpix = np.median(np.median(HDUList['SCI'].data[:,:,refpix_mask],axis=2),axis=1)
             meanRefpix = np.mean(np.mean(HDUList['SCI'].data[:,:,refpix_mask],axis=2),axis=1)
@@ -703,12 +725,26 @@ class jw(object):
             int_arr = int_start + np.arange(nint)
             int_count_arr = np.append(int_count_arr,int_arr)
 
+            for oneAmp in range(nAmps):
+                oneAmpMask = ampMasks[oneAmp]
+                medianInAmp = np.median(np.median(HDUList['SCI'].data[:,:,oneAmpMask],axis=2),axis=1)
+                ## akward way to turn [None,None,None,None] into [[list],[list],[list],[list]]
+                if ampMedian_series[oneAmp] is None:
+                    ampMedian_series[oneAmp] = medianInAmp
+                else:
+                    ampMedian_series[oneAmp] = np.append(ampMedian_series[oneAmp],
+                                                         medianInAmp)
+
             HDUList.close()
         
         t = Table()
         t['int'] = int_count_arr
         t['median refpix'] = refpix_median_series
         t['mean refpix'] = refpix_mean_series
+
+        for oneAmp in range(nAmps):
+            t['Amp {}'.format(oneAmp)] = ampMedian_series[oneAmp]
+
         outName = '{}_refpix_series.csv'.format(self.descrip)
         outDir = os.path.join(self.param['outputDir'],'refpix')
         outPath = os.path.join(outDir,outName)

@@ -68,12 +68,17 @@ class wlcubeMake(object):
         HDUList_out = fits.PrimaryHDU(wlCube,self.firstHead)
         HDUList_out.writeto(self.outPath,overwrite=True)
 
-    def run_pca(self,n_components=8):
+    def run_pca(self,n_components=8,hideImg=[]):
         cube = fits.getdata(self.outPath)
 
         ## replace NaN with 0
         nanpt = np.isfinite(cube) == False
         cube[nanpt] = 0.0
+        ## hide some points (from cosmic rays)
+        ## replace them with the median image
+        for onePt in hideImg:
+            cube[onePt,:,:] = np.median(cube,axis=0)
+
         nz, ny, nx = cube.shape
         dat2D = np.reshape(cube,[nz,ny * nx])
         pca = PCA(n_components=n_components)

@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt
 import pdb
 from copy import deepcopy
-
+from sklearn.decomposition import PCA
 
 relFileSearch = 'Documents/jwst/flight_data/proc/01274/nrca3_fenrir_proc_002_groebak/split_output/*.fits'
 defFileSearch = os.path.join(os.environ['HOME'],relFileSearch)
@@ -26,6 +26,12 @@ class wlcubeMake(object):
         
         if os.path.exists(self.outDir) == False:
             os.mkdir(outDir)
+
+        outName = os.path.basename(self.firstPath).replace('.fits','_WL_cube.fits')
+        self.outPath = os.path.join(self.outDir,outName)
+        pcaName = os.path.basename(self.firstPath).replace('.fits','PCA_results.fits')
+        self.pcaPath = os.path.join(self.outDir,pcaName)
+        
         
 
     def make_WL_cube(self):
@@ -57,10 +63,29 @@ class wlcubeMake(object):
             HDUList.close()
             
         
-        outName = os.path.basename(self.firstPath).replace('.fits','_WL_cube.fits')
-        
+
+
         HDUList_out = fits.PrimaryHDU(wlCube,self.firstHead)
-        HDUList_out.writeto(os.path.join(self.outDir,outName),overwrite=True)
+        HDUList_out.writeto(self.outPath,overwrite=True)
+
+    def run_pca(self,n_components=8):
+        cube = fits.getdata(self.outPath)
+
+        ## replace NaN with 0
+        nanpt = np.isfinite(cube) == False
+        cube[nanpt] = 0.0
+        nz, ny, nx = cube.shape
+        dat2D = np.reshape(cube,[nz,ny * nx])
+        pca = PCA(n_components=n_components)
+        pca.fit(dat2D)
+        principalComponents = pca.fit_transform(dat2D)
+        pcaImgCube = np.reshape(pca.components_,[n_components,ny,nx])
+        
+        pcaHDU = fits.PrimaryHDU(pcaImgCube,self.firstHead)
+        tserHDU = fits.ImageHDU(principalComponents)
+        outHDUList = fits.HDUList([pcaHDU,tserHDU])
+        print("Writing PCA results to {}".format(self.pcaPath))
+        outHDUList.writeto(self.pcaPath,overwrite=True)
 
     def run_all(self):
         self.make_WL_cube()

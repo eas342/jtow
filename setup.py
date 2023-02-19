@@ -12,7 +12,8 @@ with open('HISTORY.rst') as history_file:
 
 requirements = ["tshirt >= 0.1dev9",
                 "jwst",
-                "splintegrate"]
+                "splintegrate",
+                "scikit-learn"]
 
 test_requirements = ['pytest>=3', ]
 

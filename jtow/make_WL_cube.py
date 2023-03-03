@@ -94,6 +94,7 @@ class wlcubeMake(object):
 
     def run_all(self):
         self.make_WL_cube()
+        self.run_pca()
     
 
 def make_WL_cube(fileSearch=defFileSearch):

@@ -25,7 +25,7 @@ class wlcubeMake(object):
         self.firstHead = fits.getheader(self.firstPath)
         
         if os.path.exists(self.outDir) == False:
-            os.mkdir(outDir)
+            os.mkdir(self.outDir)
 
         outName = os.path.basename(self.firstPath).replace('.fits','_WL_cube.fits')
         self.outPath = os.path.join(self.outDir,outName)

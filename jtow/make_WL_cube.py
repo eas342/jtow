@@ -36,7 +36,7 @@ class wlcubeMake(object):
 
     def make_WL_cube(self):
         firstHead = self.firstHead
-        excpMessage = "No default coord set for {} {} {}".format(firstHead['FILTER'],firstHead['SUBARRAY'],
+        excpMessage = "No default coord set for {} {} {} {}".format(firstHead['FILTER'],firstHead['SUBARRAY'],
                                                                 firstHead['DETECTOR'])
         if firstHead['FILTER'] == 'WLP4':
             if firstHead['SUBARRAY'] == 'SUBGRISM64':
@@ -46,7 +46,10 @@ class wlcubeMake(object):
                     x1, x2, y1, y2 = 1756, 1836, 0, 64
                 else:
                     raise Exception(excpMessage)
-        elif firstHead['SUBARRAY'] == 'SUBGRISM256':
+            else:
+                raise Exception(excpMessage)
+        else: 
+            if firstHead['SUBARRAY'] == 'SUBGRISM256':
                 if firstHead['DETECTOR'] == 'NRCA3':
                     x1, x2, y1, y2 = 994, 1128, 87, 247
                 elif firstHead['DETECTOR'] == 'NRCA1':
@@ -55,8 +58,6 @@ class wlcubeMake(object):
                     raise Exception(excpMessage)
             else:
                 raise Exception(excpMessage)
-        else:
-            raise Exception(excpMessage)
         
         wlCube = np.zeros([self.nImg,y2-y1,x2-x1])
         

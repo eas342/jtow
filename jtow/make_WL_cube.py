@@ -36,8 +36,8 @@ class wlcubeMake(object):
 
     def make_WL_cube(self):
         firstHead = self.firstHead
-        excpMessage = "No default coord set for {} {} {} {}".format(firstHead['FILTER'],firstHead['SUBARRAY'],
-                                                                firstHead['DETECTOR'])
+        excpMessage = "No default coord set for {} {} {}".format(firstHead['FILTER'],firstHead['SUBARRAY'],
+                                                                 firstHead['DETECTOR'])
         if firstHead['FILTER'] == 'WLP4':
             if firstHead['SUBARRAY'] == 'SUBGRISM64':
                 if firstHead['DETECTOR'] == 'NRCA3':

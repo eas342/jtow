@@ -46,6 +46,13 @@ class wlcubeMake(object):
                     x1, x2, y1, y2 = 1756, 1836, 0, 64
                 else:
                     raise Exception(excpMessage)
+        elif firstHead['SUBARRAY'] == 'SUBGRISM256':
+                if firstHead['DETECTOR'] == 'NRCA3':
+                    x1, x2, y1, y2 = 994, 1128, 87, 247
+                elif firstHead['DETECTOR'] == 'NRCA1':
+                    x1, x2, y1, y2 = 1727, 1861, 82, 242
+                else:
+                    raise Exception(excpMessage)
             else:
                 raise Exception(excpMessage)
         else:

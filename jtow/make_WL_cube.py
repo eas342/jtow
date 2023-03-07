@@ -31,8 +31,14 @@ class wlcubeMake(object):
         self.outPath = os.path.join(self.outDir,outName)
         pcaName = os.path.basename(self.firstPath).replace('.fits','PCA_results.fits')
         self.pcaPath = os.path.join(self.outDir,pcaName)
+        self.pcaPlotDir = os.path.join(self.outDir,'plots')
+        if os.path.exists(self.pcaPlotDir) == False:
+            os.mkdir(self.pcaPlotDir)
         
-        
+        if self.nImg < 13:
+            self.default_n_components = 6
+        else:
+            self.default_n_components = 13
 
     def make_WL_cube(self):
         firstHead = self.firstHead
@@ -76,8 +82,11 @@ class wlcubeMake(object):
         HDUList_out = fits.PrimaryHDU(wlCube,self.firstHead)
         HDUList_out.writeto(self.outPath,overwrite=True)
 
-    def run_pca(self,n_components=8,hideImg=[]):
+    def run_pca(self,n_components=None,hideImg=[]):
         cube = fits.getdata(self.outPath)
+
+        if n_components is None:
+            n_components = self.default_n_components
 
         ## replace NaN with 0
         nanpt = np.isfinite(cube) == False
@@ -100,9 +109,64 @@ class wlcubeMake(object):
         print("Writing PCA results to {}".format(self.pcaPath))
         outHDUList.writeto(self.pcaPath,overwrite=True)
 
+    def plot_pca_tser(self,renorm=False):
+        HDUList = fits.open(self.pcaPath)
+        tser2D = HDUList[1].data
+        fig, ax = plt.subplots(figsize=(10,18))
+        if renorm == True:
+            offsetVal = 7
+            ylabel = 'Normalized PC Value + offset'
+            labelOffset =  0.5 * offsetVal
+        else:
+            offsetVal = 3000
+            labelOffset =  0.3 * offsetVal
+            ylabel = "PC Value + offset"
+        for ind in np.arange(tser2D.shape[1]):
+            offset = ind * offsetVal
+            yShow = tser2D[:,ind]
+            if renorm == True:
+                yShow = yShow / np.std(yShow)
+            
+            lineDat = plt.plot(yShow - offset)
+            ax.text(0,-offset + labelOffset,'Comp {}'.format(ind),
+                    color=lineDat[0].get_color())
+        ax.set_xlabel("Time (Int Number)")
+        ax.set_ylabel(ylabel)
+        ax.legend()
+        figPath = os.path.join(self.pcaPlotDir,'eigenpca_norm_{}.pdf'.format(renorm))
+        fig.savefig(figPath,bbox_inches='tight')
+
+        HDUList.close()
+
+
+    def plot_eigenimages(self):
+        HDUList = fits.open(self.pcaPath)
+        EigenImages = HDUList[0].data
+        
+        fig, axArr2D = plt.subplots(4,4,gridspec_kw={'wspace':0.2,'hspace':0.4},
+                            figsize=(12,12))
+        axArr = axArr2D.ravel()
+        for ind,oneImg in enumerate(EigenImages):
+
+            ax = axArr[ind]
+            ax.imshow(oneImg,origin='lower')
+            ax.set_title('Comp {}'.format(ind))
+        
+        figPath = os.path.join(self.pcaPlotDir,'eigenimages.pdf')
+        print('Saving PCA figure to {}'.format(figPath))
+        fig.savefig(figPath,bbox_inches='tight')
+        HDUList.close()
+
+    def plot_pca(self):
+        self.plot_eigenimages()
+        for renormalize in [False,True]:
+            self.plot_pca_tser(renorm=renormalize)
+
+
     def run_all(self):
         self.make_WL_cube()
         self.run_pca()
+        self.plot_pca()
     
 
 def make_WL_cube(fileSearch=defFileSearch):

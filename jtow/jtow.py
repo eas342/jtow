@@ -56,6 +56,7 @@ import tqdm
 from splintegrate import splintegrate
 from . import quick_ff_divide
 from . import temporal_clean
+from . import make_WL_cube
 
 path_to_defaults = "params/default_params.yaml"
 defaultParamPath = pkg_resources.resource_filename('jtow',path_to_defaults)
@@ -1013,10 +1014,24 @@ class jw(object):
         cleanedPath = os.path.join(self.splitDir,'ff_cleaned')
         temporal_clean.clean_data(searchPath=filesToClean,
                                   savePath=cleanedPath)
-    
+
+    def make_wlCube(self):
+        """
+        Make a cube of all weak lens images, run PCA analysis
+        """
+        firstHead_prim = fits.getheader(self.all_uncal_files[0],extname='PRIMARY')
+        channel = firstHead_prim['CHANNEL']
+        if channel == 'SHORT':
+            cleanedPathSearch = os.path.join(self.splitDir,'ff_cleaned','*.fits')
+            make_WL_cube.make_WL_cube(fileSearch=cleanedPathSearch)
+        else:
+            print("CHANNEL is {}, so not doing WL PCA analysis".format(chanel))
+        
     def run_all(self):
         self.run_jw()
         self.splintegrate()
         self.do_flat()
         self.temporal_clean()
+        self.make_wlCube()
+    
     

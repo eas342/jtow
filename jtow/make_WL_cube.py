@@ -170,5 +170,5 @@ class wlcubeMake(object):
     
 
 def make_WL_cube(fileSearch=defFileSearch):
-    wlCubeObj = wlCubeMake()
+    wlCubeObj = wlcubeMake(fileSearch=fileSearch)
     wlCubeObj.run_all()

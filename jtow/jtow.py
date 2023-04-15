@@ -1025,7 +1025,7 @@ class jw(object):
             cleanedPathSearch = os.path.join(self.splitDir,'ff_cleaned','*.fits')
             make_WL_cube.make_WL_cube(fileSearch=cleanedPathSearch)
         else:
-            print("CHANNEL is {}, so not doing WL PCA analysis".format(chanel))
+            print("CHANNEL is {}, so not doing WL PCA analysis".format(channel))
         
     def run_all(self):
         self.run_jw()

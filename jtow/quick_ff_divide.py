@@ -79,11 +79,17 @@ def quick_ff_divide(searchPath,customFlat=None):
         yStart = HDUList[0].header['SUBSTRT2'] - 1
         yEnd = yStart + HDUList[0].header['SUBSIZE2']
 
-            
+        
+
         subFlat = flatData[yStart:yEnd,xStart:xEnd]
         HDUList['SCI'].data = HDUList['SCI'].data / subFlat
         badpt = (HDUList['DQ'].data & 2**0) > 0
         HDUList['SCI'].data[badpt] = np.nan
+        HDUList['SCI'].header['FFNAME'] = (os.path.basename(flatPath),
+                                           'manual flat field file')
+        HDUList['SCI'].header['FFDIV'] = (True,
+                                          'Is the science frame divided by a flat?')
+
         HDUList.writeto(outPath,overwrite=True)
         HDUList.close()
     

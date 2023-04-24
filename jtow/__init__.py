@@ -2,6 +2,6 @@
 
 __author__ = """Everett Schlawin"""
 __email__ = 'granfalloontoyballoon@hotmail.com'
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 from . import jtow

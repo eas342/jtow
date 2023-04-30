@@ -266,12 +266,18 @@ class jw(object):
                     else:
                         mask1[:,-4:] = False
                     
-                    if firstHead['FILTER'] == 'F444W':
-                        mask1[4:,637:2045] = False
-                    elif firstHead['FILTER'] == 'F322W2':
-                        mask1[4:,4:1846] = False
+                    if self.param['recenteredNIRCamGrism'] == True:
+                        if firstHead['FILTER'] == 'F322W2':
+                            mask1[4:,90:1999] = False
+                        else:
+                            raise NotImplementedError
                     else:
-                        raise NotImplementedError
+                        if firstHead['FILTER'] == 'F444W':
+                            mask1[4:,637:2045] = False
+                        elif firstHead['FILTER'] == 'F322W2':
+                            mask1[4:,4:1846] = False
+                        else:
+                            raise NotImplementedError
                     
                     ROEBAmask = mask1
                 

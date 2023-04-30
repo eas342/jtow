@@ -29,3 +29,4 @@ rampFitWeighting: 'optimal'
 smoothSlowDir: null
 useGrismRefpx: False
 forceHeaderChange: null
+recenteredNIRCamGrism: False

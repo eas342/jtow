@@ -99,6 +99,10 @@ If :code:`None` ('null' in .yaml file), no smoothing is done with ROEBA. If set 
 ~~~~~~~~~~~~~~~~~~~~~
 Use the reference pixels for ROEBA corrections? If True, the left refpix will be used for F322W2 data and right refpix will be used for F444W data. If False, only the background pixels will be used from the rightmost amplifier (F322W2 data) or leftmost amplifier (F444W data).
 
+:code:`recenteredNIRCamGrism`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Are the grism spectra re-centered in the middle (enabling 1/f corrections from amplifier 1 and 4)?
+
 :code:`custGroupDQfile`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Set a custom data quality array for after the saturation step to manually set some pixels as saturated. Could be useful if you want to treat all the pixels in a column the same or enforce that the data quality flags are not as variable. Should be the path to a FITS file with the same number of groups as the data and the same dimensions as the data. Will be combined with all integrations' group data quality flags with a bitwise or. If :code:`None` ("Null" in YAML file), this is not done.

@@ -786,7 +786,7 @@ class jw(object):
         
         t = Table()
         t['int'] = int_count_arr
-        pdb.set_trace()
+        
         t['median refpix'] = refpix_median_series
         t['mean refpix'] = refpix_mean_series
 

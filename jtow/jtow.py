@@ -721,6 +721,9 @@ class jw(object):
         refpix_mean_ygrad_R = []
         active_px_L = []
         active_px_R = []
+        refpix_firstRead = []
+        refpix_secRead = []
+        refpix_lastRead = []
 
         int_count_arr = []
         nFile = len(self.all_uncal_files)
@@ -734,13 +737,17 @@ class jw(object):
             dm_uncal = jwst.datamodels.open(HDUList)
             sciData = np.array(HDUList['SCI'].data,dtype=int)
             medRefpix = np.median(np.median(sciData[:,:,refpix_mask],axis=2),axis=1)
-            meanRefpix = np.mean(np.mean(sciData[:,:,refpix_mask],axis=2),axis=1)
+            meanRefpix = mean_2axes(sciData[:,:,refpix_mask])
             refpix_mean_series = np.append(refpix_mean_series,meanRefpix)
             refpix_median_series = np.append(refpix_median_series,medRefpix)
 
+            refpix_firstRead = np.append(refpix_firstRead,mean_1axis(sciData[:,0,refpix_mask]))
+            refpix_secRead = np.append(refpix_secRead,mean_1axis(sciData[:,1,refpix_mask]))
+            refpix_lastRead = np.append(refpix_lastRead,mean_1axis(sciData[:,-1,refpix_mask]))
+
             diffImg = np.diff(sciData,axis=1) ## cds pairs
             
-            meanDiffRefpix = np.nanmean(np.nanmean(diffImg[:,:,refpix_mask],axis=2),axis=1)
+            meanDiffRefpix = mean_2axes(diffImg[:,:,refpix_mask])
             refpix_mean_slope = np.append(refpix_mean_slope,meanDiffRefpix)
 
             if oneHead['SUBSIZE1'] == 2048:
@@ -808,6 +815,10 @@ class jw(object):
         t['mean ygradR'] = refpix_mean_ygrad_R
         t['mean activeL'] = active_px_L
         t['mean activeR'] = active_px_R
+
+        t['mean read 0'] = refpix_firstRead
+        t['mean read 1'] = refpix_secRead
+        t['mean read last'] = refpix_lastRead
 
         outName = '{}_refpix_series.csv'.format(self.descrip)
         outDir = os.path.join(self.param['outputDir'],'refpix')
@@ -1100,3 +1111,9 @@ class jw(object):
     
 def mean_3axes(dat4D):
     return np.nanmean(np.nanmean(np.nanmean(dat4D,axis=3),axis=2),axis=1)
+
+def mean_2axes(dat3D):
+    return np.nanmean(np.nanmean(dat3D,axis=2),axis=1)
+
+def mean_1axis(dat2D):
+    return np.nanmean(dat2D,axis=1)

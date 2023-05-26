@@ -719,6 +719,8 @@ class jw(object):
         refpix_mean_xgrad = []
         refpix_mean_ygrad_L = []
         refpix_mean_ygrad_R = []
+        active_px_L = []
+        active_px_R = []
 
         int_count_arr = []
         nFile = len(self.all_uncal_files)
@@ -763,6 +765,10 @@ class jw(object):
                 refpix_mean_ygrad_L = np.append(refpix_mean_ygrad_L,mean_ygrad_L)
                 refpix_mean_ygrad_R = np.append(refpix_mean_ygrad_R,mean_ygrad_R)
                 
+                activePixLside = mean_3axes(sciData[:,:,4:10,4:512])
+                active_px_L = np.append(active_px_L,activePixLside)
+                activePixRside = mean_3axes(sciData[:,:,4:10,1538:2044])
+                active_px_R = np.append(active_px_R,activePixRside)
             else:
                 warnings.warn('X dimension not 2048, not attempting to save side refpix and gradients')
 
@@ -800,6 +806,8 @@ class jw(object):
         t['mean xgrad'] = refpix_mean_xgrad
         t['mean ygradL'] = refpix_mean_ygrad_L
         t['mean ygradR'] = refpix_mean_ygrad_R
+        t['mean activeL'] = active_px_L
+        t['mean activeR'] = active_px_R
 
         outName = '{}_refpix_series.csv'.format(self.descrip)
         outDir = os.path.join(self.param['outputDir'],'refpix')

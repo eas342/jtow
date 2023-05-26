@@ -712,6 +712,14 @@ class jw(object):
 
         refpix_mean_series = []
         refpix_median_series = []
+        refpix_mean_Lside = []
+        refpix_mean_Rside = []
+        refpix_mean_bottom = []
+        refpix_mean_slope = []
+        refpix_mean_xgrad = []
+        refpix_mean_ygrad_L = []
+        refpix_mean_ygrad_R = []
+
         int_count_arr = []
         nFile = len(self.all_uncal_files)
         ampMedian_series = [None] * nAmps
@@ -722,19 +730,51 @@ class jw(object):
 
 
             dm_uncal = jwst.datamodels.open(HDUList)
-            medRefpix = np.median(np.median(HDUList['SCI'].data[:,:,refpix_mask],axis=2),axis=1)
-            meanRefpix = np.mean(np.mean(HDUList['SCI'].data[:,:,refpix_mask],axis=2),axis=1)
+            sciData = np.array(HDUList['SCI'].data,dtype=int)
+            medRefpix = np.median(np.median(sciData[:,:,refpix_mask],axis=2),axis=1)
+            meanRefpix = np.mean(np.mean(sciData[:,:,refpix_mask],axis=2),axis=1)
             refpix_mean_series = np.append(refpix_mean_series,meanRefpix)
             refpix_median_series = np.append(refpix_median_series,medRefpix)
 
+            diffImg = np.diff(sciData,axis=1) ## cds pairs
+            
+            meanDiffRefpix = np.nanmean(np.nanmean(diffImg[:,:,refpix_mask],axis=2),axis=1)
+            refpix_mean_slope = np.append(refpix_mean_slope,meanDiffRefpix)
+
+            if oneHead['SUBSIZE1'] == 2048:
+
+                refpixLSide = mean_3axes(sciData[:,:,:,0:4])
+                refpixRSide = mean_3axes(sciData[:,:,:,-4:])
+                refpix_mean_Lside = np.append(refpix_mean_Lside,refpixLSide)
+                refpix_mean_Rside = np.append(refpix_mean_Rside,refpixRSide)
+                refpixbottom = mean_3axes(sciData[:,:,0:4,:])
+                refpix_mean_bottom = np.append(refpix_mean_bottom,refpixbottom)
+
+                if nAmps == 4:
+                    diffImgX = np.diff(sciData[:,:,:,0:512],axis=3)
+                else:
+                    diffImgX = np.diff(sciData,axis=1)
+                mean_xgrad = mean_3axes(diffImgX[:,:,0:4,:])
+                refpix_mean_xgrad = np.append(refpix_mean_xgrad,mean_xgrad)
+
+                diffImgY = np.diff(sciData,axis=2)
+                mean_ygrad_L = mean_3axes(diffImgY[:,:,:,0:4])
+                mean_ygrad_R = mean_3axes(diffImgY[:,:,:,-4:])
+                refpix_mean_ygrad_L = np.append(refpix_mean_ygrad_L,mean_ygrad_L)
+                refpix_mean_ygrad_R = np.append(refpix_mean_ygrad_R,mean_ygrad_R)
+                
+            else:
+                warnings.warn('X dimension not 2048, not attempting to save side refpix and gradients')
+
+            
             int_start = dm_uncal.meta.exposure.integration_start
-            nint = HDUList['SCI'].data.shape[0]
+            nint = sciData.shape[0]
             int_arr = int_start + np.arange(nint)
             int_count_arr = np.append(int_count_arr,int_arr)
 
             for oneAmp in range(nAmps):
                 oneAmpMask = ampMasks[oneAmp]
-                medianInAmp = np.median(np.median(HDUList['SCI'].data[:,:,oneAmpMask],axis=2),axis=1)
+                medianInAmp = np.median(np.median(sciData[:,:,oneAmpMask],axis=2),axis=1)
                 ## akward way to turn [None,None,None,None] into [[list],[list],[list],[list]]
                 if ampMedian_series[oneAmp] is None:
                     ampMedian_series[oneAmp] = medianInAmp
@@ -746,11 +786,20 @@ class jw(object):
         
         t = Table()
         t['int'] = int_count_arr
+        pdb.set_trace()
         t['median refpix'] = refpix_median_series
         t['mean refpix'] = refpix_mean_series
 
         for oneAmp in range(nAmps):
             t['Amp {}'.format(oneAmp)] = ampMedian_series[oneAmp]
+
+        t['mean Lside'] = refpix_mean_Lside
+        t['mean Rside'] = refpix_mean_Rside
+        t['mean bottom'] = refpix_mean_bottom
+        t['mean slope'] = refpix_mean_slope
+        t['mean xgrad'] = refpix_mean_xgrad
+        t['mean ygradL'] = refpix_mean_ygrad_L
+        t['mean ygradR'] = refpix_mean_ygrad_R
 
         outName = '{}_refpix_series.csv'.format(self.descrip)
         outDir = os.path.join(self.param['outputDir'],'refpix')
@@ -1041,3 +1090,5 @@ class jw(object):
         self.make_wlCube()
     
     
+def mean_3axes(dat4D):
+    return np.nanmean(np.nanmean(np.nanmean(dat4D,axis=3),axis=2),axis=1)

@@ -4,6 +4,7 @@ import os
 import glob
 import numpy as np
 from astropy.table import Table
+import pdb
 
 class wrap(object):
     """
@@ -32,8 +33,9 @@ class wrap(object):
         ta_search = 'jw{:05d}{:03d}???_02102*'.format(self.progID,self.obsNum)
         ta_search_path = os.path.join(self.obs_dir,ta_search)
         ta_dir = os.path.join(self.obs_dir,'ta_files')
+        
         move_files(ta_search_path,ta_dir)
-        specFileTable = make_fileTable(os.path.join(self.obs_dir,'*'))
+        specFileTable = make_fileTable(os.path.join(self.obs_dir,'jw*'))
         unique_descriptors = np.unique(specFileTable['suffix'])
         for oneSuffix in unique_descriptors:
             descriptor_path = os.path.join(self.obs_dir,oneSuffix.replace('.','_'))

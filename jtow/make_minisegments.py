@@ -20,7 +20,8 @@ def_uncal_path = os.path.join(homeDir,relPath)
 
 max_nints = 10
 
-def mini_split_one_seg(uncal_path=def_uncal_path,diagnostics=False):
+def mini_split_one_seg(uncal_path=def_uncal_path,diagnostics=False,
+                       reDo=False):
     print("Making mini segments for {}".format(uncal_path))
     
     HDUList = fits.open(uncal_path)
@@ -54,36 +55,39 @@ def mini_split_one_seg(uncal_path=def_uncal_path,diagnostics=False):
     table = Table(HDUList['INT_TIMES'].data)
         
     for oneMini in np.arange(num_mini):
-    
-        shortHDU_prim = deepcopy(fits.PrimaryHDU(None,origHeader))
-        relstart = mini_starts_rel[oneMini]
-        relend =  mini_ends_rel[oneMini]
-        shortHDU_prim.header['INTSTART'] = origHeader['INTSTART'] + relstart
-        shortHDU_prim.header['INTEND'] = origHeader['INTSTART'] + relend - 1
-        #shortHDU_prim.header['INTSTART'] + nint_use - 1
-        
-        #HDUList['SCI'].data.shape
-        shortHDU_sci = fits.ImageHDU(HDUList['SCI'].data[relstart:relend],HDUList['SCI'].header)
-        
-        shortHDU_group = HDUList['GROUP']
-        shortHDU_asdf = HDUList['ASDF']
-        
-        int_timesHDU = fits.BinTableHDU(table[relstart:relend],header=HDUList['INT_TIMES'].header)
-        
-        shortHDUList = fits.HDUList([shortHDU_prim,shortHDU_sci,HDUList['GROUP'],
-                                     int_timesHDU,HDUList['ASDF']])
-        
-        if 'ZEROFRAME' in HDUList:
-            shortHDU_zero = fits.ImageHDU(HDUList['ZEROFRAME'].data[relstart:relend],HDUList['ZEROFRAME'].header)
-            shortHDUList.append(shortHDU_zero)
-        
         tmp = orig_name
         outName = "_".join(tmp.split('_')[0:3]) + "_miniseg{:03d}_".format(oneMini) + "_".join(tmp.split('_')[3:])
-        
         outPath = os.path.join(outDir,outName)
-        shortHDUList.writeto(outPath,overwrite=True)
         
-        shortHDUList.close()
+        if (os.path.exists(outPath) == True) & (reDo == False):
+            print("Already found, skipping {}".format(outName))
+        else:
+            shortHDU_prim = deepcopy(fits.PrimaryHDU(None,origHeader))
+            relstart = mini_starts_rel[oneMini]
+            relend =  mini_ends_rel[oneMini]
+            shortHDU_prim.header['INTSTART'] = origHeader['INTSTART'] + relstart
+            shortHDU_prim.header['INTEND'] = origHeader['INTSTART'] + relend - 1
+            #shortHDU_prim.header['INTSTART'] + nint_use - 1
+            
+            #HDUList['SCI'].data.shape
+            shortHDU_sci = fits.ImageHDU(HDUList['SCI'].data[relstart:relend],HDUList['SCI'].header)
+            
+            shortHDU_group = HDUList['GROUP']
+            shortHDU_asdf = HDUList['ASDF']
+            
+            int_timesHDU = fits.BinTableHDU(table[relstart:relend],header=HDUList['INT_TIMES'].header)
+            
+            shortHDUList = fits.HDUList([shortHDU_prim,shortHDU_sci,HDUList['GROUP'],
+                                         int_timesHDU,HDUList['ASDF']])
+            
+            if 'ZEROFRAME' in HDUList:
+                shortHDU_zero = fits.ImageHDU(HDUList['ZEROFRAME'].data[relstart:relend],HDUList['ZEROFRAME'].header)
+                shortHDUList.append(shortHDU_zero)
+            
+            
+            shortHDUList.writeto(outPath,overwrite=True)
+            
+            shortHDUList.close()
 
     HDUList.close()
 

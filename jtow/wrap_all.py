@@ -18,18 +18,18 @@ class wrap(object):
         self.progID = progID
         self.obsNum = obsNum
         self.mast_path = os.environ['JWSTDOWNLOAD_OUTDIR']
-
-    def run_all():
-        self.organize_files()
-        self.make_miniseg()
-        self.make_jtow_param()
-        self.run_jtow()
-        self.make_tshirt_param()
-        self.run_tshirt()
-
-    def organize_files(self):
         self.prog_dir = os.path.join(self.mast_path,"{:05d}".format(self.progID))
         self.obs_dir = os.path.join(self.prog_dir,"obsnum{:02d}".format(self.obsNum))
+
+    def run_all(self):
+        self.organize_files()
+        self.make_miniseg()
+        #self.make_jtow_param()
+        #self.run_jtow()
+        #self.make_tshirt_param()
+        #self.run_tshirt()
+
+    def organize_files(self):
         ta_search = 'jw{:05d}{:03d}???_02102*'.format(self.progID,self.obsNum)
         ta_search_path = os.path.join(self.obs_dir,ta_search)
         ta_dir = os.path.join(self.obs_dir,'ta_files')
@@ -42,6 +42,10 @@ class wrap(object):
             fileSearch = os.path.join(self.obs_dir,'*{}'.format(oneSuffix))
             move_files(fileSearch,descriptor_path)
                                       
+    def make_miniseg(self):
+        spec_uncal_dir = os.path.join(self.obs_dir,'nrcalong_uncal_fits')
+        uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
+        make_minisegments.loop_minisegments(uncal_search)
         
         
                                 

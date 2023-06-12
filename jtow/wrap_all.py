@@ -4,6 +4,7 @@ import os
 import glob
 import numpy as np
 from astropy.table import Table
+from astropy.io import fits, ascii
 import pdb
 
 class wrap(object):
@@ -46,7 +47,16 @@ class wrap(object):
         spec_uncal_dir = os.path.join(self.obs_dir,'nrcalong_uncal_fits')
         uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
         make_minisegments.loop_minisegments(uncal_search)
+        first_uncal = np.sort(glob.glob(uncal_search))[0]
+        firstHead = fits.getheader(first_uncal)
+        if firstHead['FILTER'] == 'F444W':
+            detSearch = 'nrca1_uncal_fits'
+        else:
+            detSearch = 'nrca3_uncal_fits'
         
+        uncal_search2 = os.path.join(self.obs_dir,detSearch,'*uncal.fits')
+        make_minisegments.loop_minisegments(uncal_search2)
+            
         
                                 
         

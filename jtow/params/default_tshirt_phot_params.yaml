@@ -1,0 +1,39 @@
+##procFiles: /Users/everettschlawin/Documents/jwst/flight_data/proc/01185/gj3470_obs017_nrca1_proc/split_output/ff_cleaned/*.fits
+excludeList: null
+##srcName: GJ 3470
+##srcNameShort: p005_on_cleaned
+##nightName: prog01185_obs17_gj3470_f444w
+##refStarPos: ## positions of the stars in [x,y]. The first one is the target
+##   - [1794.27, 161.54]
+refPhotCentering: null ## photometry fits file where to obtain centroid shifts to apply from 1 star/source
+srcGeometry: Circular ## Source aperture geometry, Circular or Rectangular
+bkgSub: True ## Do background subtraction?
+bkgGeometry: CircularAnnulus ## Backghround geometry, Circular Annulus or Rectangular
+bkgMethod: mean ## Method for background estimate (mean, median, robust mean)
+##apRadius: 79. ## Source aperture radius
+#apHeight: 65 ## Source aperture height (only for rectangular aperture)
+#apWidth: 212 ## Source aperture width (only for rectangular aperture)
+nanTreatment: 'zero' ## How to treat NaNs in image? 'zero' will set to 0
+##backStart: 79. ## Background annulus start radius
+##backEnd: 100. ## Background annulus end radius
+#backHeight: 40 ## background aperture height (for rectangular background)
+#backWidth: 212 ## background aperture width (only for rectangular aperture)
+backOffset: [0.0,0.] ## Background offset (from source centroid)
+boxFindSize: 7 ## the half-width of the box used for source centroiding
+jdRef: 2459883 ## JD reference offset to subtract
+timingMethod: null ## how to assign integration times? 'JWSTint' will add int time. Otherwise put null
+dateKeyword: BJDMID ## use mid-int bjd_tdb
+scaleAperture: False ## Scale the aperture with the FWHM?
+apScale: 2.5 ## number of times the FWHM for aperture-scaling
+apRange: [2,17] ## min/max range of allowed FHWM, when scaling
+isCube: False ## Is the data a cube (3D)?
+cubePlane: 0 ## The plane to choose if data is in cubes
+doCentering: False ## Center the aperturess with Gaussian?
+FITSextension: 0 ## FITS extension of science frames
+HEADextension: 0 ## FITS extension of the header info (for exposure and timing)
+isSlope: True ## Is the FITS image a slope image that should be multiplied by the int time?
+subpixelMethod: exact ## Method for subpixel positions in aperture photometry. "exact" will calculate exactly while "center" will use whole pixels (faster to run)
+readNoise: 14 ## Read noise in electrons
+detectorGain: 2.0 ## Optionally specify the detector gain e-/DN
+dateFormat: MJD ## Format of date. "Two Part" is split over DATE-OBS and TIME-OBS, whereas "One Part" is all in DATE-OBS
+

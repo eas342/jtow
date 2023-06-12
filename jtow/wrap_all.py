@@ -2,10 +2,18 @@ from . import jtow
 from . import make_minisegments
 import os
 import glob
+import yaml
 import numpy as np
 from astropy.table import Table
 from astropy.io import fits, ascii
 import pdb
+from tshirt.pipeline import phot_pipeline, spec_pipeline
+import pkg_resources
+
+path_to_defaults_tshirt_phot = "params/default_tshirt_phot_params.yaml"
+defaultParamPath_tshirt_phot = pkg_resources.resource_filename('jtow',path_to_defaults_tshirt_phot)
+
+tshirt_baseDir = phot_pipeline.get_baseDir()
 
 class wrap(object):
     """
@@ -27,7 +35,8 @@ class wrap(object):
         self.make_miniseg()
         #self.make_jtow_param()
         #self.run_jtow()
-        #self.make_tshirt_param()
+        self.make_tshirt_phot_param()
+        #self.make_tshirt_spec_param()
         #self.run_tshirt()
 
     def organize_files(self):
@@ -49,17 +58,69 @@ class wrap(object):
         make_minisegments.loop_minisegments(uncal_search)
         first_uncal = np.sort(glob.glob(uncal_search))[0]
         firstHead = fits.getheader(first_uncal)
+        self.LWFilter = firstHead['FILTER']
+        self.LWPupil = firstHead['PUPIL']
         if firstHead['FILTER'] == 'F444W':
-            detSearch = 'nrca1_uncal_fits'
+            self.SWdetSearch = 'nrca1_uncal_fits'
         else:
-            detSearch = 'nrca3_uncal_fits'
-        
-        uncal_search2 = os.path.join(self.obs_dir,detSearch,'*uncal.fits')
-        make_minisegments.loop_minisegments(uncal_search2)
+            self.SWdetSearch = 'nrca3_uncal_fits'
+
+        self.SWprocDir = self.SWdetSearch.replace('uncal_fits','proc')
             
+        self.SWdetSearchPath = os.path.join(self.obs_dir,self.SWdetSearch,'*uncal.fits')
+        make_minisegments.loop_minisegments(self.SWdetSearchPath)
         
-                                
+    def make_tshirt_phot_param(self): 
+        photParams = jtow.read_yaml(defaultParamPath_tshirt_phot)
         
+        first_sw_uncal = np.sort(glob.glob(self.SWdetSearchPath))[0]
+        firstHead = fits.getheader(first_sw_uncal)
+        self.SWFilter = firstHead['FILTER']
+        self.SWPupil = firstHead['PUPIL']
+        
+        photParams['procFiles'] = os.path.join(self.obs_dir,self.SWprocDir,
+                                               'split_output',
+                                               'ff_cleaned','*.fits')
+        photParams['srcName'] = firstHead['TARGPROP']
+        photParams['srcNameShort'] = "auto_params_001"
+        srcFileName = photParams['srcName'].strip().replace(' ','_')
+        photParams['nightName'] = "prog{}_{}_{}".format(firstHead['VISIT_ID'],srcFileName,self.LWFilter)
+        if self.LWFilter == 'F444W':
+            if (firstHead['SUBARRAY'] == 'SUBGRISM256') | (firstHead['SUBARRAY'] == 'FULL'):
+                starPos = [1794.27,161.54]
+            elif firstHead['SUBARRAY'] == 'SUBGRISM64':
+                starPos = [1796.0,35.5]
+            else:
+                raise NotImplementedError
+        else:
+            if (firstHead['SUBARRAY'] == 'SUBGRISM256') | (firstHead['SUBARRAY'] == 'FULL'):
+                starPos = [1060.7, 165.9]
+            elif firstHead['SUBARRAY'] == 'SUBGRISM64':
+                starPos = [1064.4, 30.9]
+            else:
+                raise NotImplementedError
+        photParams['refStarPos'] = [starPos]
+        if self.SWPupil == 'WLP8':
+            apertures = [79,79,100]
+        elif self.SWPupil == 'WLP4':
+            apertures = [31.5,32,60]
+        else:
+            raise NotImplementedError
+        photParams['apRadius'] = apertures[0]
+        photParams['backStart'] = apertures[1]
+        photParams['backEnd'] = apertures[2]
+        
+        tshirt_photDirPath = os.path.join(tshirt_baseDir,
+                                          'parameters',
+                                          'phot_params',
+                                          'jwst_flight_data',
+                                          'prog01185'.format(firstHead['PROGRAM']))
+        tshirt_photName = "phot_param_{}_autoparam_001.yaml".format(photParams['nightName'])
+        tshirt_photPath = os.path.join(tshirt_photDirPath,tshirt_photName)
+        print("Writing photom auto parameter file to {}".format(tshirt_photPath))
+        with open(tshirt_photPath,'w') as outFile:
+            yaml.dump(photParams,outFile,default_flow_style=False)
+                                       
 
 def make_fileTable(searchPath):
     t = Table()

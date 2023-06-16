@@ -12,6 +12,8 @@ import pkg_resources
 
 path_to_defaults_tshirt_phot = "params/default_tshirt_phot_params.yaml"
 defaultParamPath_tshirt_phot = pkg_resources.resource_filename('jtow',path_to_defaults_tshirt_phot)
+defaultParamPath_jtow_nrcalong = pkg_resources.resource_filename('jtow',
+                                                                 'params/default_jtow_nrcalong.yaml')
 
 tshirt_baseDir = phot_pipeline.get_baseDir()
 
@@ -120,7 +122,30 @@ class wrap(object):
         print("Writing photom auto parameter file to {}".format(tshirt_photPath))
         with open(tshirt_photPath,'w') as outFile:
             yaml.dump(photParams,outFile,default_flow_style=False)
-                                       
+
+
+    def make_jtow_nrcalong(self): 
+        jtowParams = jtow.read_yaml(defaultParamPath_jtow_nrcalong)
+
+        rawFileSearch = os.path.join(self.obs_dir,'nrcalong_uncal_fits',
+                                     'miniseg','*uncal.fits')
+        jtowParams['rawFileSearch'] = rawFileSearch
+        
+        procFilePath = os.path.join(self.obs_dir,'nrcalong_proc')
+        jtowParams['outputDir'] = procFilePath
+        first_lw_uncal = np.sort(glob.glob(rawFileSearch))[0]
+        
+        firstHead = fits.getheader(first_lw_uncal)
+
+        srcFileName = firstHead['TARGPROP'].strip().replace(' ','_')
+        
+        jtow_paramName = "flight_{}_nrcalong_{}_autoparam_001.yaml".format(firstHead['VISIT_ID'],
+                                                                           srcFileName)
+        
+        print("Writing photom auto parameter file to {}".format(jtow_paramName))
+        with open(jtow_paramName,'w') as outFile:
+            yaml.dump(jtowParams,outFile,default_flow_style=False)
+        
 
 def make_fileTable(searchPath):
     t = Table()

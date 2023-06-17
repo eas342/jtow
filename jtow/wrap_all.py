@@ -39,7 +39,8 @@ class wrap(object):
     def run_all(self):
         self.organize_files()
         self.make_miniseg()
-        #self.make_jtow_param()
+        self.make_jtow_nrcalong()
+        self.make_jtow_nrc_SW()
         #self.run_jtow()
         self.make_tshirt_phot_param()
         self.make_tshirt_spec_param()
@@ -196,6 +197,30 @@ class wrap(object):
         jtow_paramName = "flight_{}_nrcalong_{}_autoparam_001.yaml".format(firstHead['VISIT_ID'],
                                                                            srcFileName)
         
+        print("Writing photom auto parameter file to {}".format(jtow_paramName))
+        with open(jtow_paramName,'w') as outFile:
+            yaml.dump(jtowParams,outFile,default_flow_style=False)
+
+    def make_jtow_nrc_SW(self): 
+        jtowParams = jtow.read_yaml(defaultParamPath_jtow_nrc_SW)
+        
+        rawFileSearch = os.path.join(self.obs_dir,self.SWdetSearch,
+                                     'miniseg','*uncal.fits')
+        jtowParams['rawFileSearch'] = rawFileSearch
+        
+        procFilePath = os.path.join(self.obs_dir,self.SWprocDir)
+        jtowParams['outputDir'] = procFilePath
+        first_lw_uncal = np.sort(glob.glob(rawFileSearch))[0]
+        
+        firstHead = fits.getheader(first_lw_uncal)
+
+        srcFileName = firstHead['TARGPROP'].strip().replace(' ','_')
+        detName = self.SWdetSearch.split('_')[0]
+        jtow_paramName = "flight_{}_{}_{}_autoparam_001.yaml".format(firstHead['VISIT_ID'],
+                                                                     detName,
+                                                                     srcFileName)
+        starPos = self.get_SW_starPos(firstHead)
+        jtowParams['photParam']['refStarPos'] = [starPos]
         print("Writing photom auto parameter file to {}".format(jtow_paramName))
         with open(jtow_paramName,'w') as outFile:
             yaml.dump(jtowParams,outFile,default_flow_style=False)

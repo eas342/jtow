@@ -1,0 +1,23 @@
+##rawFileSearch: /fenrirdata1/es_tso/flight_data/01185/obsnum07/nrca1_uncal_fits/miniseg/*-seg008_*.fits
+##outputDir: /fenrirdata1/es_tso/flight_data/01185/obsnum07/nrca1_proc
+photParam:
+##    refStarPos: [[1794,161]]
+    backStart: 200
+    backEnd: 201
+    FITSextension: 1
+    isCube: True
+    procFiles: "*.fits"
+noutputs: 4
+add_noutputs_keyword: False
+autoROEBAmasks: True
+ROEBACorrection: True
+ROEBAK: True
+jumpRejectionThreshold: 6
+saveROEBAdiagnostics: False
+maxCores: half
+saveBiasStep: False
+custBias: null
+biasCycle: ['0','0','0','0']
+biasCycleSearch: null
+simpleSlopes: null
+saveJumpStep: False

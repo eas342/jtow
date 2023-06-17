@@ -14,6 +14,10 @@ path_to_defaults_tshirt_phot = "params/default_tshirt_phot_params.yaml"
 defaultParamPath_tshirt_phot = pkg_resources.resource_filename('jtow',path_to_defaults_tshirt_phot)
 defaultParamPath_jtow_nrcalong = pkg_resources.resource_filename('jtow',
                                                                  'params/default_jtow_nrcalong.yaml')
+defaultParamPath_jtow_nrc_SW = pkg_resources.resource_filename('jtow',
+                                                               'params/default_jtow_nrc_short.yaml')
+defaultParamPath_tshirt_spec = pkg_resources.resource_filename('jtow',
+                                                               'params/default_tshirt_spec_params.yaml')
 
 tshirt_baseDir = phot_pipeline.get_baseDir()
 
@@ -38,7 +42,7 @@ class wrap(object):
         #self.make_jtow_param()
         #self.run_jtow()
         self.make_tshirt_phot_param()
-        #self.make_tshirt_spec_param()
+        self.make_tshirt_spec_param()
         #self.run_tshirt()
 
     def organize_files(self):
@@ -57,6 +61,7 @@ class wrap(object):
     def make_miniseg(self):
         spec_uncal_dir = os.path.join(self.obs_dir,'nrcalong_uncal_fits')
         uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
+        self.LWdetSearchPath = uncal_search
         make_minisegments.loop_minisegments(uncal_search)
         first_uncal = np.sort(glob.glob(uncal_search))[0]
         firstHead = fits.getheader(first_uncal)
@@ -71,6 +76,24 @@ class wrap(object):
             
         self.SWdetSearchPath = os.path.join(self.obs_dir,self.SWdetSearch,'*uncal.fits')
         make_minisegments.loop_minisegments(self.SWdetSearchPath)
+    
+    def get_SW_starPos(self,firstHead):
+        if self.LWFilter == 'F444W':
+            if (firstHead['SUBARRAY'] == 'SUBGRISM256') | (firstHead['SUBARRAY'] == 'FULL'):
+                starPos = [1794.27,161.54]
+            elif firstHead['SUBARRAY'] == 'SUBGRISM64':
+                starPos = [1796.0,35.5]
+            else:
+                raise NotImplementedError
+        else:
+            if (firstHead['SUBARRAY'] == 'SUBGRISM256') | (firstHead['SUBARRAY'] == 'FULL'):
+                starPos = [1060.7, 165.9]
+            elif firstHead['SUBARRAY'] == 'SUBGRISM64':
+                starPos = [1064.4, 30.9]
+            else:
+                raise NotImplementedError
+        return starPos
+    
         
     def make_tshirt_phot_param(self): 
         photParams = jtow.read_yaml(defaultParamPath_tshirt_phot)
@@ -87,20 +110,7 @@ class wrap(object):
         photParams['srcNameShort'] = "auto_params_001"
         srcFileName = photParams['srcName'].strip().replace(' ','_')
         photParams['nightName'] = "prog{}_{}_{}".format(firstHead['VISIT_ID'],srcFileName,self.LWFilter)
-        if self.LWFilter == 'F444W':
-            if (firstHead['SUBARRAY'] == 'SUBGRISM256') | (firstHead['SUBARRAY'] == 'FULL'):
-                starPos = [1794.27,161.54]
-            elif firstHead['SUBARRAY'] == 'SUBGRISM64':
-                starPos = [1796.0,35.5]
-            else:
-                raise NotImplementedError
-        else:
-            if (firstHead['SUBARRAY'] == 'SUBGRISM256') | (firstHead['SUBARRAY'] == 'FULL'):
-                starPos = [1060.7, 165.9]
-            elif firstHead['SUBARRAY'] == 'SUBGRISM64':
-                starPos = [1064.4, 30.9]
-            else:
-                raise NotImplementedError
+        starPos = self.get_SW_starPos(firstHead)
         photParams['refStarPos'] = [starPos]
         if self.SWPupil == 'WLP8':
             apertures = [79,79,100]
@@ -116,17 +126,61 @@ class wrap(object):
                                           'parameters',
                                           'phot_params',
                                           'jwst_flight_data',
-                                          'prog01185'.format(firstHead['PROGRAM']))
+                                          'prog{}'.format(firstHead['PROGRAM']))
+        if os.path.exists(tshirt_photDirPath) == False:
+            os.makedirs(tshirt_photDirPath)
         tshirt_photName = "phot_param_{}_autoparam_001.yaml".format(photParams['nightName'])
         tshirt_photPath = os.path.join(tshirt_photDirPath,tshirt_photName)
         print("Writing photom auto parameter file to {}".format(tshirt_photPath))
         with open(tshirt_photPath,'w') as outFile:
             yaml.dump(photParams,outFile,default_flow_style=False)
 
+    def make_tshirt_spec_param(self): 
+        specParams = jtow.read_yaml(defaultParamPath_tshirt_spec)
+        
+        first_lw_uncal = np.sort(glob.glob(self.LWdetSearchPath))[0]
+        firstHead = fits.getheader(first_lw_uncal)
+        
+        specParams['procFiles'] = os.path.join(self.obs_dir,'nrcalong_proc',
+                                               'split_output',
+                                               'ff_cleaned','*.fits')
+        specParams['srcName'] = firstHead['TARGPROP']
+        specParams['srcNameShort'] = "auto_params_001"
+        srcFileName = specParams['srcName'].strip().replace(' ','_')
+        specParams['nightName'] = "prog{}_{}_{}".format(firstHead['VISIT_ID'],srcFileName,self.LWFilter)
+        if self.LWFilter == 'F444W':
+            starPos = 31
+            bkgRegionsY = [[5,21],[41,64]]
+            dispPixels = [750,2040]
+        elif self.LWFilter == 'F322W2':
+            starPos = 34
+            bkgRegionsY = [[5,24],[44,65]]
+            dispPixels = [4,1747]
+        else:
+            raise NotImplementedError
+        specParams['starPositions'] = [starPos]
+        specParams['bkgRegionsY'] = bkgRegionsY
+        specParams['dispPixels'] = dispPixels
+        
+        tshirt_specDirPath = os.path.join(tshirt_baseDir,
+                                          'parameters',
+                                          'spec_params',
+                                          'jwst',
+                                          'prog_{}'.format(firstHead['PROGRAM']))
+        if os.path.exists(tshirt_specDirPath) == False:
+            os.makedirs(tshirt_specDirPath)
+        
+        tshirt_specName = "spec_nrc_{}_autoparam_001.yaml".format(specParams['nightName'])
+        tshirt_specPath = os.path.join(tshirt_specDirPath,tshirt_specName)
+        print("Writing spec auto parameter file to {}".format(tshirt_specPath))
+        with open(tshirt_specPath,'w') as outFile:
+            yaml.dump(specParams,outFile,default_flow_style=False)
 
+
+            
     def make_jtow_nrcalong(self): 
         jtowParams = jtow.read_yaml(defaultParamPath_jtow_nrcalong)
-
+        
         rawFileSearch = os.path.join(self.obs_dir,'nrcalong_uncal_fits',
                                      'miniseg','*uncal.fits')
         jtowParams['rawFileSearch'] = rawFileSearch

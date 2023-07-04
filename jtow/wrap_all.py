@@ -41,7 +41,7 @@ class wrap(object):
         self.make_miniseg()
         self.make_jtow_nrcalong()
         self.make_jtow_nrc_SW()
-        #self.run_jtow()
+        #self.run_jtow_nrcalong()
         self.make_tshirt_phot_param()
         self.make_tshirt_spec_param()
         #self.run_tshirt()
@@ -51,13 +51,15 @@ class wrap(object):
         ta_search_path = os.path.join(self.obs_dir,ta_search)
         ta_dir = os.path.join(self.obs_dir,'ta_files')
         
-        link_files(ta_search_path,ta_dir)
+        move_or_link_files(ta_search_path,ta_dir,operation='link')
         specFileTable = make_fileTable(os.path.join(self.obs_dir,'jw*'))
         unique_descriptors = np.unique(specFileTable['suffix'])
         for oneSuffix in unique_descriptors:
             descriptor_path = os.path.join(self.obs_dir,oneSuffix.replace('.','_'))
             fileSearch = os.path.join(self.obs_dir,'*{}'.format(oneSuffix))
-            link_files(fileSearch,descriptor_path)
+            move_or_link_files(fileSearch,descriptor_path,
+                               operation='link',
+                               excludeSearch=ta_search_path)
                                       
     def make_miniseg(self):
         spec_uncal_dir = os.path.join(self.obs_dir,'nrcalong_uncal_fits')
@@ -246,22 +248,27 @@ def ensure_directory(path):
     if os.path.exists(path) == False:
         os.makedirs(path)
 
-def move_files(searchPath,destinationDir):
+
+def move_or_link_files(searchPath,destinationDir,excludeSearch='',
+                       operation='link'):
     fileList = np.sort(glob.glob(searchPath))
     ensure_directory(destinationDir)
+
+    excludeList = glob.glob(excludeSearch)
     for oneFile in fileList:
         baseName = os.path.basename(oneFile)
         outName = os.path.join(destinationDir,baseName)
-        os.rename(oneFile,outName)
-
-def link_files(searchPath,destinationDir):
-    fileList = np.sort(glob.glob(searchPath))
-    ensure_directory(destinationDir)
-    for oneFile in fileList:
-        baseName = os.path.basename(oneFile)
-        outName = os.path.join(destinationDir,baseName)
-        if os.path.exists(outName) == False:
-            os.symlink(oneFile,outName)
-
-
-    
+        if (oneFile in excludeList) | (baseName in excludeList):
+            excluded = True
+        else:
+            excluded = False
+        
+        if (os.path.exists(outName) == False) & (excluded == False):
+            if operation == 'link':
+                os.symlink(oneFile,outName)
+            elif operation == 'move':
+                os.rename(oneFile,outName)
+            else:
+                raise NotImplementedError
+            
+                

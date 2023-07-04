@@ -12,6 +12,7 @@ from copy import deepcopy
 import os
 import pdb
 import glob
+import warnings
 
 # In[31]:
 homeDir = os.environ['HOME']
@@ -96,6 +97,10 @@ def mini_split_one_seg(uncal_path=def_uncal_path,diagnostics=False,
 def loop_minisegments(fileSearch):
     fileList = np.sort(glob.glob(fileSearch))
     for oneFile in fileList:
-        mini_split_one_seg(oneFile)
+        if os.path.exists(oneFile) == False:
+            ## for symbolic links, check if they exist
+            warnings.warn("File {} does not exist".format(oneFile))
+        else:
+            mini_split_one_seg(oneFile)
 
 

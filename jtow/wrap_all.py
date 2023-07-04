@@ -51,13 +51,13 @@ class wrap(object):
         ta_search_path = os.path.join(self.obs_dir,ta_search)
         ta_dir = os.path.join(self.obs_dir,'ta_files')
         
-        move_files(ta_search_path,ta_dir)
+        link_files(ta_search_path,ta_dir)
         specFileTable = make_fileTable(os.path.join(self.obs_dir,'jw*'))
         unique_descriptors = np.unique(specFileTable['suffix'])
         for oneSuffix in unique_descriptors:
             descriptor_path = os.path.join(self.obs_dir,oneSuffix.replace('.','_'))
             fileSearch = os.path.join(self.obs_dir,'*{}'.format(oneSuffix))
-            move_files(fileSearch,descriptor_path)
+            link_files(fileSearch,descriptor_path)
                                       
     def make_miniseg(self):
         spec_uncal_dir = os.path.join(self.obs_dir,'nrcalong_uncal_fits')
@@ -253,6 +253,15 @@ def move_files(searchPath,destinationDir):
         baseName = os.path.basename(oneFile)
         outName = os.path.join(destinationDir,baseName)
         os.rename(oneFile,outName)
+
+def link_files(searchPath,destinationDir):
+    fileList = np.sort(glob.glob(searchPath))
+    ensure_directory(destinationDir)
+    for oneFile in fileList:
+        baseName = os.path.basename(oneFile)
+        outName = os.path.join(destinationDir,baseName)
+        if os.path.exists(outName) == False:
+            os.symlink(oneFile,outName)
 
 
     

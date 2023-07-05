@@ -41,9 +41,10 @@ class wrap(object):
         self.make_miniseg()
         self.make_jtow_nrcalong()
         self.make_jtow_nrc_SW()
-        #self.run_jtow_nrcalong()
-        self.make_tshirt_phot_param()
+        self.run_jtow_nrcalong()
         self.make_tshirt_spec_param()
+        self.run_jtow_nrc_SW()
+        self.make_tshirt_phot_param()
         #self.run_tshirt()
 
     def organize_files(self):
@@ -198,11 +199,15 @@ class wrap(object):
         
         jtow_paramName = "flight_{}_nrcalong_{}_autoparam_001.yaml".format(firstHead['VISIT_ID'],
                                                                            srcFileName)
-        
+        self.jtow_nrcalong_paramfile = jtow_paramName
         print("Writing photom auto parameter file to {}".format(jtow_paramName))
         with open(jtow_paramName,'w') as outFile:
             yaml.dump(jtowParams,outFile,default_flow_style=False)
 
+    def run_jtow_nrcalong(self):
+        jw = jtow.jw(self.jtow_nrcalong_paramfile)
+        jw.run_all()
+            
     def make_jtow_nrc_SW(self): 
         jtowParams = jtow.read_yaml(defaultParamPath_jtow_nrc_SW)
         
@@ -224,9 +229,13 @@ class wrap(object):
         starPos = self.get_SW_starPos(firstHead)
         jtowParams['photParam']['refStarPos'] = [starPos]
         print("Writing photom auto parameter file to {}".format(jtow_paramName))
+        self.jtow_SW_paramfile = jtow_paramName
         with open(jtow_paramName,'w') as outFile:
             yaml.dump(jtowParams,outFile,default_flow_style=False)
-        
+    
+    def run_jtow_nrc_SW(self):
+        jw = jtow.jw(self.jtow_SW_paramfile)
+        jw.run_all()
 
 def make_fileTable(searchPath):
     t = Table()

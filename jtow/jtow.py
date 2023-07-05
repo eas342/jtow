@@ -1107,7 +1107,7 @@ class jw(object):
         self.do_flat()
         self.temporal_clean()
         self.make_wlCube()
-    
+        self.collect_refpix_series()
     
 def mean_3axes(dat4D):
     return np.nanmean(np.nanmean(np.nanmean(dat4D,axis=3),axis=2),axis=1)

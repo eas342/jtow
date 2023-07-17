@@ -37,18 +37,32 @@ class wrap(object):
         self.obs_dir = os.path.join(self.prog_dir,"obsnum{:02d}".format(self.obsNum))
 
     def run_all(self):
+        self.lookup_configuration()
         self.organize_files()
         self.make_miniseg()
-        self.make_jtow_nrcalong()
-        self.make_jtow_nrc_SW()
-        self.run_jtow_nrcalong()
-        self.make_tshirt_spec_param()
-        self.run_jtow_nrc_SW()
-        self.make_tshirt_phot_param()
+        if self.instrument == 'NIRCAM':
+            self.make_jtow_nrcalong()
+            self.make_jtow_nrc_SW()
+            self.run_jtow_nrcalong()
+            self.make_tshirt_spec_param()
+            self.run_jtow_nrc_SW()
+            self.make_tshirt_phot_param()
         #self.run_tshirt()
 
+    def lookup_configuration(self):
+        all_files = np.sort(glob.glob(os.path.join(self.obs_dir,'*.fits')))
+        oneHead = fits.getheader(all_files[-1])
+        self.instrument = oneHead['INSTRUME']
+        if self.instrument == 'NIRSPEC':
+            self.grating = oneHead['GRATING']
+        
+        
     def organize_files(self):
-        ta_search = 'jw{:05d}{:03d}???_02102*'.format(self.progID,self.obsNum)
+        if self.instrument == 'NIRCAM':
+            ta_search = 'jw{:05d}{:03d}???_02102*'.format(self.progID,self.obsNum)
+        else:
+            ta_search = 'jw{:05d}{:03d}???_02101*'.format(self.progID,self.obsNum)
+        
         ta_search_path = os.path.join(self.obs_dir,ta_search)
         ta_dir = os.path.join(self.obs_dir,'ta_files')
         
@@ -61,25 +75,36 @@ class wrap(object):
             move_or_link_files(fileSearch,descriptor_path,
                                operation='link',
                                excludeSearch=ta_search_path)
-                                      
-    def make_miniseg(self):
-        spec_uncal_dir = os.path.join(self.obs_dir,'nrcalong_uncal_fits')
-        uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
-        self.LWdetSearchPath = uncal_search
-        make_minisegments.loop_minisegments(uncal_search)
-        first_uncal = np.sort(glob.glob(uncal_search))[0]
-        firstHead = fits.getheader(first_uncal)
-        self.LWFilter = firstHead['FILTER']
-        self.LWPupil = firstHead['PUPIL']
-        if firstHead['FILTER'] == 'F444W':
-            self.SWdetSearch = 'nrca1_uncal_fits'
-        else:
-            self.SWdetSearch = 'nrca3_uncal_fits'
-
-        self.SWprocDir = self.SWdetSearch.replace('uncal_fits','proc')
             
-        self.SWdetSearchPath = os.path.join(self.obs_dir,self.SWdetSearch,'*uncal.fits')
-        make_minisegments.loop_minisegments(self.SWdetSearchPath)
+    def make_miniseg(self):
+        if self.instrument == 'NIRCAM':
+            spec_uncal_dir = os.path.join(self.obs_dir,'nrcalong_uncal_fits')
+            uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
+            self.LWdetSearchPath = uncal_search
+            make_minisegments.loop_minisegments(uncal_search)
+            first_uncal = np.sort(glob.glob(uncal_search))[0]
+            firstHead = fits.getheader(first_uncal)
+            self.LWFilter = firstHead['FILTER']
+            self.LWPupil = firstHead['PUPIL']
+            if firstHead['FILTER'] == 'F444W':
+                self.SWdetSearch = 'nrca1_uncal_fits'
+            else:
+                self.SWdetSearch = 'nrca3_uncal_fits'
+            
+            self.SWprocDir = self.SWdetSearch.replace('uncal_fits','proc')
+                
+            self.SWdetSearchPath = os.path.join(self.obs_dir,self.SWdetSearch,'*uncal.fits')
+            make_minisegments.loop_minisegments(self.SWdetSearchPath)
+        elif self.instrument == 'NIRSPEC':
+            spec_uncal_dir = os.path.join(self.obs_dir,'nrs1_uncal_fits')
+            uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
+            make_minisegments.loop_minisegments(uncal_search)
+            if self.grating != 'PRISM':
+                spec_uncal_dir2 = os.path.join(self.obs_dir,'nrs2_uncal_fits')
+                uncal_search2 = os.path.join(spec_uncal_dir2,'*uncal.fits')
+                make_minisegments.loop_minisegments(uncal_search2)
+        else:
+            raise NotImplentedError
     
     def get_SW_starPos(self,firstHead):
         if self.LWFilter == 'F444W':

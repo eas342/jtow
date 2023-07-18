@@ -1,14 +1,13 @@
-##rawFileSearch: /fenrirdata1/es_tso/flight_data/01185/obsnum07/nrcalong_uncal_fits/miniseg/*uncal.fits
-##outputDir: /fenrirdata1/es_tso/flight_data/01185/obsnum07/nrcalong_proc/
 add_noutputs_keyword: False
 autoROEBAmasks: True
 ROEBACorrection: True
-ROEBAK: True
-jumpRejectionThreshold: 6
+ROEBAK: False
+jumpRejectionThreshold: 10
 saveROEBAdiagnostics: False
 maxCores: half
-saveBiasStep: False
-custBias: null
-biasCycle: ['0','1','1','1']
-biasCycleSearch: null
+biasCycleSearch: []
 simpleSlopes: null
+maxCores: half
+ROEBAmaskfromRate: placeHolder
+ROEBAmaskfromRateThreshold: 1.5 # DN/s
+ROEBAmaskGrowthSize: 2.0

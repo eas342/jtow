@@ -19,6 +19,9 @@ defaultParamPath_jtow_nrc_SW = pkg_resources.resource_filename('jtow',
 defaultParamPath_tshirt_spec = pkg_resources.resource_filename('jtow',
                                                                'params/default_tshirt_spec_params.yaml')
 
+defaultParamPath_jtow_nrs_grating = pkg_resources.resource_filename('jtow',
+                                                               'params/default_nrs_grating.yaml')
+
 tshirt_baseDir = phot_pipeline.get_baseDir()
 
 class wrap(object):
@@ -51,8 +54,10 @@ class wrap(object):
             if self.grating == 'PRISM':
                 self.make_jtow_prism()
             else:
-                self.nrs1File = self.make_jtow_nrs1()
-                self.make_jtow_nrs2()
+                for detector in ['nrs1','nrs2']:
+                    nrs_paramFile = self.make_jtow_nrs_grating(detector=detector)
+                    jw = jtow.jw(nrs_paramFile)
+                    jw.run_all()
                 
         #self.run_tshirt()
 
@@ -218,7 +223,7 @@ class wrap(object):
         self.jtow_nrcalong_paramfile = jtow_paramName
 
     def make_jtow_nrs_grating(self,detector='nrs1'):
-        
+        defaultParamPath = defaultParamPath_jtow_nrs_grating
         return self.make_jtow_spec(defaultParamPath,detName=detector)
             
     def make_jtow_spec(self,defaultParamPath,detName): 
@@ -236,6 +241,15 @@ class wrap(object):
 
         srcFileName = firstHead['TARGPROP'].strip().replace(' ','_')
         
+        if self.instrument == 'NIRSPEC':
+            """
+            Use rate files for mask
+            """
+            origFileName = firstHead['FILENAME']
+            rate_file_use = os.path.join(self.obs_dir,origFileName.replace('uncal.fits','rate.fits'))
+            jtowParams['ROEBAmaskfromRate'] = rate_file_use
+
+
         jtow_paramName = "flight_{}_{}_{}_autoparam_001.yaml".format(firstHead['VISIT_ID'],
                                                                      detName,
                                                                      srcFileName)

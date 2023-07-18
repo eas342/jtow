@@ -47,6 +47,13 @@ class wrap(object):
             self.make_tshirt_spec_param()
             self.run_jtow_nrc_SW()
             self.make_tshirt_phot_param()
+        elif self.instrument == 'NIRSPEC':
+            if self.grating == 'PRISM':
+                self.make_jtow_prism()
+            else:
+                self.nrs1File = self.make_jtow_nrs1()
+                self.make_jtow_nrs2()
+                
         #self.run_tshirt()
 
     def lookup_configuration(self):
@@ -205,29 +212,37 @@ class wrap(object):
         with open(tshirt_specPath,'w') as outFile:
             yaml.dump(specParams,outFile,default_flow_style=False)
 
+    def make_jtow_nrcalong(self):
+        defaultParamPath = defaultParamPath_jtow_nrcalong
+        jtow_paramName = self.make_jtow_spec(defaultParamPath,detName='nrcalong')
+        self.jtow_nrcalong_paramfile = jtow_paramName
 
-            
-    def make_jtow_nrcalong(self): 
-        jtowParams = jtow.read_yaml(defaultParamPath_jtow_nrcalong)
+    def make_jtow_nrs_grating(self,detector='nrs1'):
         
-        rawFileSearch = os.path.join(self.obs_dir,'nrcalong_uncal_fits',
+        return self.make_jtow_spec(defaultParamPath,detName=detector)
+            
+    def make_jtow_spec(self,defaultParamPath,detName): 
+        jtowParams = jtow.read_yaml(defaultParamPath)
+        
+        rawFileSearch = os.path.join(self.obs_dir,'{}_uncal_fits'.format(detName),
                                      'miniseg','*uncal.fits')
         jtowParams['rawFileSearch'] = rawFileSearch
         
-        procFilePath = os.path.join(self.obs_dir,'nrcalong_proc')
+        procFilePath = os.path.join(self.obs_dir,'{}_proc'.format(detName))
         jtowParams['outputDir'] = procFilePath
-        first_lw_uncal = np.sort(glob.glob(rawFileSearch))[0]
+        first_spec_uncal = np.sort(glob.glob(rawFileSearch))[0]
         
-        firstHead = fits.getheader(first_lw_uncal)
+        firstHead = fits.getheader(first_spec_uncal)
 
         srcFileName = firstHead['TARGPROP'].strip().replace(' ','_')
         
-        jtow_paramName = "flight_{}_nrcalong_{}_autoparam_001.yaml".format(firstHead['VISIT_ID'],
-                                                                           srcFileName)
-        self.jtow_nrcalong_paramfile = jtow_paramName
+        jtow_paramName = "flight_{}_{}_{}_autoparam_001.yaml".format(firstHead['VISIT_ID'],
+                                                                     detName,
+                                                                     srcFileName)
         print("Writing photom auto parameter file to {}".format(jtow_paramName))
         with open(jtow_paramName,'w') as outFile:
             yaml.dump(jtowParams,outFile,default_flow_style=False)
+        return jtow_paramName
 
     def run_jtow_nrcalong(self):
         jw = jtow.jw(self.jtow_nrcalong_paramfile)

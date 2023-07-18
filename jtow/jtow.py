@@ -1094,7 +1094,11 @@ class jw(object):
         Make a cube of all weak lens images, run PCA analysis
         """
         firstHead_prim = fits.getheader(self.all_uncal_files[0],extname='PRIMARY')
-        channel = firstHead_prim['CHANNEL']
+        if firstHead_prim['INSTRUME'] == 'NIRCAM':
+            channel = firstHead_prim['CHANNEL']
+        else:
+            channel = 'N/A'
+        
         if channel == 'SHORT':
             cleanedPathSearch = os.path.join(self.splitDir,'ff_cleaned','*.fits')
             make_WL_cube.make_WL_cube(fileSearch=cleanedPathSearch)

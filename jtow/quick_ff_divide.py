@@ -52,14 +52,16 @@ def quick_ff_divide(searchPath,customFlat=None):
         else:
             recs = crds.getrecommendations(head)
             if instrumName == 'nirspec':
+                flatKey = 'dflat'
                 flatName = recs['dflat']
             else:
                 flatName = recs['flat']
+                flatKey = 'flat'
 
         if customFlat is None:
             flatPath = os.path.join(crds_path,flatName)
             if os.path.exists(flatPath) == False:
-                crds.getreferences(head,reftypes=['flat'])
+                crds.getreferences(head,reftypes=[flatKey])
         else:
             flatPath = customFlat
         

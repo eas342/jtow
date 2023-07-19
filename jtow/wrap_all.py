@@ -22,6 +22,9 @@ defaultParamPath_tshirt_spec = pkg_resources.resource_filename('jtow',
 defaultParamPath_jtow_nrs_grating = pkg_resources.resource_filename('jtow',
                                                                'params/default_nrs_grating.yaml')
 
+defaultParamPath_tshirt_nrs_grating = pkg_resources.resource_filename('jtow',
+                                                               'params/default_tshirt_nrs_grating.yaml')
+
 tshirt_baseDir = phot_pipeline.get_baseDir()
 
 class wrap(object):
@@ -58,6 +61,8 @@ class wrap(object):
                     nrs_paramFile = self.make_jtow_nrs_grating(detector=detector)
                     jw = jtow.jw(nrs_paramFile)
                     jw.run_all()
+                    tshirt_param =self.make_tshirt_spec_param(detector=detector)
+                    
                 
         #self.run_tshirt()
 
@@ -176,31 +181,57 @@ class wrap(object):
         with open(tshirt_photPath,'w') as outFile:
             yaml.dump(photParams,outFile,default_flow_style=False)
 
-    def make_tshirt_spec_param(self): 
-        specParams = jtow.read_yaml(defaultParamPath_tshirt_spec)
-        
-        first_lw_uncal = np.sort(glob.glob(self.LWdetSearchPath))[0]
+    def make_tshirt_spec_param(self,detector='nrcalong'): 
+        if (self.instrument == 'NIRCAM'):
+            specParams = jtow.read_yaml(defaultParamPath_tshirt_spec)
+            instrument_abbrev = 'nrc'
+        elif (self.instrument == 'NIRSPEC'):
+            if self.grating == 'PRISM':
+                raise NotImplementedError
+            else:
+                specParams = jtow.read_yaml(defaultParamPath_tshirt_nrs_grating)
+            instrument_abbrev = 'nrs'
+        else:
+            raise NotImplementedError
+
+        spec_uncal_dir = os.path.join(self.obs_dir,'{}_uncal_fits'.format(detector))
+        uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
+        first_lw_uncal = np.sort(glob.glob(uncal_search))[0]
         firstHead = fits.getheader(first_lw_uncal)
         
-        specParams['procFiles'] = os.path.join(self.obs_dir,'nrcalong_proc',
+        specParams['procFiles'] = os.path.join(self.obs_dir,'{}_proc'.format(detector),
                                                'split_output',
                                                'ff_cleaned','*.fits')
         specParams['srcName'] = firstHead['TARGPROP']
         specParams['srcNameShort'] = "auto_params_001"
         srcFileName = specParams['srcName'].strip().replace(' ','_')
-        specParams['nightName'] = "prog{}_{}_{}".format(firstHead['VISIT_ID'],srcFileName,self.LWFilter)
-        if self.LWFilter == 'F444W':
-            starPos = 31
-            bkgRegionsY = [[5,21],[41,64]]
-            dispPixels = [750,2040]
-        elif self.LWFilter == 'F322W2':
-            starPos = 34
-            bkgRegionsY = [[5,24],[44,65]]
-            dispPixels = [4,1747]
+        
+        if (self.instrument == 'NIRCAM'):
+            if self.LWFilter == 'F444W':
+                starPos = 31
+                bkgRegionsY = [[5,21],[41,64]]
+                dispPixels = [750,2040]
+            elif self.LWFilter == 'F322W2':
+                starPos = 34
+                bkgRegionsY = [[5,24],[44,65]]
+                dispPixels = [4,1747]
+            else:
+                raise NotImplementedError
+            
+            specParams['starPositions'] = [starPos]
+            specParams['bkgRegionsY'] = bkgRegionsY
+            filterDescrip = self.LWfilter
+        elif (self.instrument == 'NIRSPEC'):
+            if (firstHead['GRATING'] == 'G395H') & (firstHead['FILTER'] == 'F290LP'):
+                if detector == 'nrs1':
+                    dispPixels = [550,2044]
+                else:
+                    dispPixels = [4,2044]
+            filterDescrip = '{}_{}'.format(firstHead['GRATING'],detector)
         else:
             raise NotImplementedError
-        specParams['starPositions'] = [starPos]
-        specParams['bkgRegionsY'] = bkgRegionsY
+        
+        specParams['nightName'] = "prog{}_{}_{}".format(firstHead['VISIT_ID'],srcFileName,filterDescrip)
         specParams['dispPixels'] = dispPixels
         
         tshirt_specDirPath = os.path.join(tshirt_baseDir,
@@ -211,11 +242,13 @@ class wrap(object):
         if os.path.exists(tshirt_specDirPath) == False:
             os.makedirs(tshirt_specDirPath)
         
-        tshirt_specName = "spec_nrc_{}_autoparam_001.yaml".format(specParams['nightName'])
+        tshirt_specName = "spec_{}_{}_autoparam_001.yaml".format(instrument_abbrev,
+                                                                 specParams['nightName'])
         tshirt_specPath = os.path.join(tshirt_specDirPath,tshirt_specName)
         print("Writing spec auto parameter file to {}".format(tshirt_specPath))
         with open(tshirt_specPath,'w') as outFile:
             yaml.dump(specParams,outFile,default_flow_style=False)
+        return tshirt_specPath
 
     def make_jtow_nrcalong(self):
         defaultParamPath = defaultParamPath_jtow_nrcalong

@@ -1,0 +1,39 @@
+excludeList: null
+dispDirection: x
+bkgSubDirections: ['Y']
+starPositions:
+ - 15
+refPhotCentering: null
+bkgRegionsX: None
+bkgOrderX: 0
+bkgRegionsY:
+ - [0,32]
+bkgOrderY: 1
+backPreScreen: true
+apWidth: 10
+jdRef: 2457551
+timingMethod: null
+isCube: false
+cubePlane: 0
+doCentering: false
+FITSextension: SCI
+HEADextension: 0
+isSlope: true
+readNoise: 14.0
+detectorGain: 1.8
+dateFormat: MJD 
+waveCalMethod: nrs_grating
+waveCalOffset: 0.0
+readNoiseCorrelation: true
+readNoiseCorrVal: 0.08
+ignorePhotNoiseInCovariance: false
+fixedProfile: true
+sigForBadPx: 30
+saveRefRow: false
+numSplineKnots: 40
+dateKeyword: BJDMID
+traceCurvedSpectrum: True ## Fit the trace to the spectrum?
+traceOrder: 3 ## polynomial order for the trace fitting
+traceFitBoxSize: 18 ## the spatial box size used to fit the trace
+traceFWHMguess: 2 ## Guess size for the spatial FWHM
+backgMinRadius: 6 ## minimum distance for background

@@ -28,7 +28,7 @@ readNoiseCorrelation: true
 readNoiseCorrVal: 0.08
 ignorePhotNoiseInCovariance: false
 fixedProfile: true
-sigForBadPx: 30
+sigForBadPx: 120
 saveRefRow: false
 numSplineKnots: 40
 dateKeyword: BJDMID

@@ -1,7 +1,7 @@
 add_noutputs_keyword: False
 autoROEBAmasks: True
-ROEBACorrection: True
-ROEBAK: False
+ROEBACorrection: GROEBA
+ROEBAK: True
 jumpRejectionThreshold: 10
 saveROEBAdiagnostics: False
 maxCores: half
@@ -11,3 +11,5 @@ maxCores: half
 ROEBAmaskfromRate: placeHolder
 ROEBAmaskfromRateThreshold: 1.5 # DN/s
 ROEBAmaskGrowthSize: 2.0
+autoParamVersion: 2
+rampFitWeighting: optimal

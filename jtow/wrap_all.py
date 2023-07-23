@@ -282,10 +282,15 @@ class wrap(object):
             rate_file_use = os.path.join(self.obs_dir,origFileName.replace('uncal.fits','rate.fits'))
             jtowParams['ROEBAmaskfromRate'] = rate_file_use
 
+        if "autoParamVersion" in jtowParams:
+            autoParamVersion = jtowParams["autoParamVersion"]
+        else:
+            autoParamVersion = 1
 
-        jtow_paramName = "flight_{}_{}_{}_autoparam_001.yaml".format(firstHead['VISIT_ID'],
+        jtow_paramName = "flight_{}_{}_{}_autoparam_{:03d}.yaml".format(firstHead['VISIT_ID'],
                                                                      detName,
-                                                                     srcFileName)
+                                                                     srcFileName
+                                                                     autoParamVersion)
         print("Writing photom auto parameter file to {}".format(jtow_paramName))
         with open(jtow_paramName,'w') as outFile:
             yaml.dump(jtowParams,outFile,default_flow_style=False)

@@ -591,12 +591,16 @@ class jw(object):
         if superbias.meta.instrument.name == "NIRCAM":
             transposeForROEBA = False
             backgMask = self.ROEBAmask
+            badRowsAllowed = 0
+            GPnsmoothKern=None
         else:
             transposeForROEBA = True
             if self.ROEBAmask is None:
                 backgMask = self.ROEBAmask
             else:
                 backgMask = self.ROEBAmask.T
+            badRowsAllowed = 15
+            GPnsmoothKern = 5
         
         for oneInt in tqdm.tqdm(np.arange(nints)):
             if self.param['ROEBAK'] == True:
@@ -643,14 +647,25 @@ class jw(object):
                     else:
                         GROEBA = False
                     
-                    rowSub, slowImg, fastImg = rowamp_sub.do_backsub(imgToCorrect,
+                    rowSub1, slowImg1, fastImg1 = rowamp_sub.do_backsub(imgToCorrect,
                                                              phot,amplifiers=self.param['noutputs'],
                                                              backgMask=backgMask,
                                                              saveDiagnostics=self.param['saveROEBAdiagnostics'],
                                                              returnFastSlow=True,
                                                              colByCol=self.param['colByCol'],
                                                              smoothSlowDir=self.param['smoothSlowDir'],
-                                                             GROEBA=GROEBA)
+                                                             GROEBA=GROEBA,
+                                                             GPnsmoothKern=GPnsmoothKern,
+                                                             badRowsAllowed=badRowsAllowed)
+                    
+                    if transposeForROEBA == True:
+                        rowSub = rowSub1.T
+                        slowImg = slowImg1.T
+                        fastImg = fastImg1.T
+                    else:
+                        rowSub = rowSub1
+                        slowImg = slowImg1
+                        fastImg = fastImg1
                     
                     if (self.param['ROEBAK'] == True) & (oneIteration == 2-1):
                         groupResult = intermediate_result[oneGroup] - fastImg
@@ -659,14 +674,11 @@ class jw(object):
                     
                     ## Save on the last iteration
                     if oneIteration == iterations - 1:
-                        if transposeForROEBA == True:
-                            roeba_one_int[oneGroup,:,:] = groupResult.T
-                        else:
-                            roeba_one_int[oneGroup,:,:] = groupResult
+                        roeba_one_int[oneGroup,:,:] = groupResult
                     else:
                         intermediate_result[oneGroup,:,:] = rowSub
                         slowReadModelCube[oneGroup,:,:] = slowImg
-            
+
             refpix_res.data[oneInt,:,:,:] = roeba_one_int
         
         

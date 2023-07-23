@@ -291,7 +291,7 @@ class wrap(object):
 
         jtow_paramName = "flight_{}_{}_{}_autoparam_{:03d}.yaml".format(firstHead['VISIT_ID'],
                                                                      detName,
-                                                                     srcFileName
+                                                                     srcFileName,
                                                                      autoParamVersion)
         print("Writing photom auto parameter file to {}".format(jtow_paramName))
         with open(jtow_paramName,'w') as outFile:

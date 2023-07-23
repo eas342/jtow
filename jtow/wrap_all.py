@@ -62,7 +62,9 @@ class wrap(object):
                     jw = jtow.jw(nrs_paramFile)
                     jw.run_all()
                     tshirt_param =self.make_tshirt_spec_param(detector=detector)
-                    
+                    spec = spec_pipeline.spec(tshirt_param)
+                    spec.showStarChoices(showPlot=False)
+                    spec.do_extraction(useMultiprocessing=True)
                 
         #self.run_tshirt()
 

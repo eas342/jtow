@@ -222,7 +222,7 @@ class wrap(object):
             
             specParams['starPositions'] = [starPos]
             specParams['bkgRegionsY'] = bkgRegionsY
-            filterDescrip = self.LWfilter
+            filterDescrip = self.LWFilter
         elif (self.instrument == 'NIRSPEC'):
             if (firstHead['GRATING'] == 'G395H') & (firstHead['FILTER'] == 'F290LP'):
                 if detector == 'nrs1':

@@ -10,6 +10,7 @@ autoROEBAmasks: True
 maxCores: quarter
 ROEBAmaskfromRate: null
 ROEBAmaskfromRateThreshold: 0.5 # DN/s
+ROEBAbadRowsAllowed: 11
 custBias: null
 saveBiasStep: False
 saveROEBAdiagnostics: False

@@ -315,13 +315,17 @@ class jw(object):
             ROEBAmask = None
             self.bad_dq_mask = None
         
+        if ROEBAmask is None:
+            minGoodRowsAllowed = None
+        else:
+            minGoodRowsAllowed = (ROEBAmask.shape[0] - self.param['ROEBAbadRowsAllowed'])
         if (self.param['ROEBAmaskGrowthSize'] is None) | (ROEBAmask is None):
             self.ROEBAmask = ROEBAmask
         else:
             grown_mask = self.grow_mask(ROEBAmask)
             good_rows = np.sum(np.sum(grown_mask,axis=1) >= 4)
             
-            if good_rows != grown_mask.shape[0]:
+            if good_rows <= minGoodRowsAllowed:
                 warnMessage = 'grown ROEBA mask has too few rows to fit for {}. Skipping the growth'.format(self.descrip)
                 print(warnMessage)
                 warnings.warn(warnMessage)
@@ -334,7 +338,7 @@ class jw(object):
         else:
             self.good_rows = np.sum(np.sum(self.ROEBAmask,axis=1) >= 4)
             
-            if self.good_rows != self.ROEBAmask.shape[0]:
+            if self.good_rows <= minGoodRowsAllowed:
                 warnMessage = 'final ROEBA mask has too few rows to fit for {}. Setting it to None and turning off ROEBA'.format(self.descrip)
                 print(warnMessage)
                 warnings.warn(warnMessage)
@@ -588,10 +592,10 @@ class jw(object):
         
         
         ## have to transpose NIRISS and NIRSpec, but not NIRCam
+        badRowsAllowed = self.param['ROEBAbadRowsAllowed']
         if superbias.meta.instrument.name == "NIRCAM":
             transposeForROEBA = False
             backgMask = self.ROEBAmask
-            badRowsAllowed = 0
             GPnsmoothKern=None
         else:
             transposeForROEBA = True
@@ -599,7 +603,6 @@ class jw(object):
                 backgMask = self.ROEBAmask
             else:
                 backgMask = self.ROEBAmask.T
-            badRowsAllowed = 15
             GPnsmoothKern = 5
         
         for oneInt in tqdm.tqdm(np.arange(nints)):

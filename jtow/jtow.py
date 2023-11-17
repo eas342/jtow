@@ -358,11 +358,19 @@ class jw(object):
                 ## Use Chris Willott's parameters for the background
                 sigma_clip_forbkg = SigmaClip(sigma=3., maxiters=5)
                 bkg_estimator = MedianBackground()
-                bkg = Background2D(rateDat, (34, 34),filter_size=(5, 5), 
-                                   mask=(self.ROEBAmask == False), 
-                                   sigma_clip=sigma_clip_forbkg, 
-                                   bkg_estimator=bkg_estimator)
-
+                try:
+                    bkg = Background2D(rateDat, (34, 34),filter_size=(5, 5), 
+                                    mask=(self.ROEBAmask == False), 
+                                    sigma_clip=sigma_clip_forbkg, 
+                                    bkg_estimator=bkg_estimator)
+                except ValueError:
+                    ## if this fails because of too many masked pixels, try high 
+                    # percentile
+                    bkg = Background2D(rateDat, (34, 34),filter_size=(5, 5), 
+                                    mask=(self.ROEBAmask == False), 
+                                    sigma_clip=sigma_clip_forbkg, 
+                                    bkg_estimator=bkg_estimator,
+                                    exclude_percentile=80.0)
                 self.backgRate = bkg.background
 
             HDUList.close()

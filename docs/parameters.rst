@@ -62,8 +62,12 @@ If :code:`colByCol` is True, ROEBA will use the median of each column to estimat
 This allows the mask to go into faint wings of the image
 
 :code:`ROEBAbadRowsAllowed`
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The number of bad rows allowed befor giving up on ROEBA. This prevents ROEBA from cutting out extended sources.
+
+:code:`ROEBApreserveBackg`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Preserve the background? When there is a rate file, you can restore the background level from the rate
 
 :code:`saveBiasStep`
 ~~~~~~~~~~~~~~~~~~~~

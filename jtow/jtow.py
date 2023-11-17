@@ -54,6 +54,9 @@ from tshirt.pipeline import phot_pipeline
 from tshirt.pipeline.instrument_specific import rowamp_sub
 import tqdm
 from splintegrate import splintegrate
+from photutils.background import Background2D, MedianBackground
+from astropy.stats import SigmaClip
+
 from . import quick_ff_divide
 from . import temporal_clean
 from . import make_WL_cube
@@ -115,7 +118,11 @@ class jw(object):
         for oneKey in self.param:
             if oneKey not in defaultParams.keys():
                 warnings.warn("{} not an expected parameter".format(oneKey))
-        
+
+        if self.param['add_noutputs_keyword'] == True:
+            warnings.warn("This code will modify the uncal file NOUTPUTS. This is DANGEROUS. Only use for older mirage simulations that lacked NOUTPUTS keyword")
+
+
         self.set_up_dirs()
         self.get_files()
         
@@ -154,9 +161,7 @@ class jw(object):
             self.paramFile = 'direct dictionary'
             self.param = directParam
         
-        if self.param['add_noutputs_keyword'] == True:
-            warnings.warn("This code will modify the uncal file NOUTPUTS. This is DANGEROUS. Only use for older mirage simulations that lacked NOUTPUTS keyword")
-        
+         
     
     def check_biasCycle(self):
         self.biasCycleSearch = self.param['biasCycleSearch']
@@ -242,7 +247,7 @@ class jw(object):
                 ROEBAmask = (rateDat < self.param['ROEBAmaskfromRateThreshold'])
                 
                 self.bad_dq_mask = HDUList['DQ'].data > 0
-                
+
                 HDUList.close()
             elif self.param['photParam'] != None:
                 self.photParam = self.param['photParam']
@@ -345,14 +350,33 @@ class jw(object):
                 self.ROEBAmask = None
                 self.param['ROEBACorrection'] = False
         
+        if (self.param['ROEBAmaskfromRate'] != None) & (self.param['ROEBACorrection'] == True):
+            HDUList = fits.open(self.param['ROEBAmaskfromRate'])
+            rateDat = HDUList['SCI'].data
+            
+            if self.param['ROEBApreserveBackg'] == True:
+                ## Use Chris Willott's parameters for the background
+                sigma_clip_forbkg = SigmaClip(sigma=3., maxiters=5)
+                bkg_estimator = MedianBackground()
+                bkg = Background2D(rateDat, (34, 34),filter_size=(5, 5), 
+                                   mask=(self.ROEBAmask == False), 
+                                   sigma_clip=sigma_clip_forbkg, 
+                                   bkg_estimator=bkg_estimator)
+
+                self.backgRate = bkg.background
+
+            HDUList.close()
+
+
         self.save_roeba_masks()
         
     
-    def save_diagnostic_img(self,diagnostic_img,suffix):
+    def save_diagnostic_img(self,diagnostic_img,suffix,
+                            saveDtype=int):
         """
         Save a diagnostic file
         """
-        primHDU = fits.PrimaryHDU(np.array(diagnostic_img,dtype=int))
+        primHDU = fits.PrimaryHDU(np.array(diagnostic_img,dtype=saveDtype))
         outPath = os.path.join(self.diagnostic_dir,'{}_{}.fits'.format(self.descrip,suffix))
         print("Saving {} to {}".format(suffix,outPath))
         primHDU.writeto(outPath,overwrite=True)
@@ -411,6 +435,10 @@ class jw(object):
             print("No ROEBA mask found, nothing to save")
         else:
             self.save_diagnostic_img(self.ROEBAmask,'roeba_mask')
+
+            if self.param['ROEBApreserveBackg'] == True:
+                self.save_diagnostic_img(self.backgRate,'roeba_backg',
+                                         saveDtype=float)
             
     def lineInterceptBias(self,stepResult):
         """
@@ -605,6 +633,24 @@ class jw(object):
                 backgMask = self.ROEBAmask.T
             GPnsmoothKern = 5
         
+        if self.param['ROEBApreserveBackg'] == True:
+            group_time = superbias.meta.exposure.group_time
+            frame_time = superbias.meta.exposure.frame_time
+            #ngroups = superbias.meta.exposure.ngroups done above
+            nframes = superbias.meta.exposure.nframes
+            #groupgap = superbias.meta.exposure.groupgap
+            #nints = superbias.data.shape[0] ## use the array size because segmented data could have fewer ints
+            #nints = superbias.meta.exposure.nints (done above)
+            tarr = np.arange(ngroups) * group_time + (nframes) * 0.5 * frame_time
+            #nY, nX = superbias.data.shape done above
+            tarr_3D = np.tile(tarr,[ny,nx,1]).T
+            backg3D = np.tile(self.backgRate,[ngroups,1,1]) * tarr_3D
+            backg4D = np.tile(backg3D,[nints,1,1,1])
+
+            ROEBA_input = superbias.data - backg4D
+        else:
+            ROEBA_input = superbias.data
+
         for oneInt in tqdm.tqdm(np.arange(nints)):
             if self.param['ROEBAK'] == True:
                 iterations = 2
@@ -636,7 +682,7 @@ class jw(object):
                         HDUList.writeto(outPath,overwrite=True)
                     
                 else:
-                    cubeToCorrect = superbias.data[oneInt]
+                    cubeToCorrect = ROEBA_input[oneInt]
                 
                 for oneGroup in np.arange(ngroups):
                     
@@ -684,8 +730,9 @@ class jw(object):
 
             refpix_res.data[oneInt,:,:,:] = roeba_one_int
         
+        if self.param['ROEBApreserveBackg'] == True:
+            refpix_res.data = refpix_res.data + backg4D
         
-        # In[328]:
         if self.param['saveROEBAdiagnostics'] == True:
             origName = deepcopy(refpix_res.meta.filename)
             if '.fits' in origName:

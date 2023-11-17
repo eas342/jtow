@@ -10,7 +10,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ["tshirt >= 0.3.1",
+requirements = ["tshirt >= 0.2",
                 "jwst",
                 "splintegrate",
                 "scikit-learn"]

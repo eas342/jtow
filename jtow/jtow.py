@@ -350,7 +350,7 @@ class jw(object):
                 self.ROEBAmask = None
                 self.param['ROEBACorrection'] = False
         
-        if (self.param['ROEBAmaskfromRate'] != None) & (self.param['ROEBACorrection'] == True):
+        if (self.param['ROEBAmaskfromRate'] != None) & (self.should_i_try_roeba()):
             HDUList = fits.open(self.param['ROEBAmaskfromRate'])
             rateDat = HDUList['SCI'].data
             
@@ -585,7 +585,18 @@ class jw(object):
             
             del HDUList_result
         
-    
+    def should_i_try_roeba(self):
+        """
+        check values of of ROEBACorrection parameter
+        """
+        if self.param['ROEBACorrection'] == 'GROEBA':
+            return True
+        elif self.param['ROEBACorrection'] == True:
+            return True
+        else:
+            return False
+        
+
     def run_roeba(self,superbias):
         """
         Do the ROEBA (row-by-row, odd/even by amplifier algorithm)
@@ -993,7 +1004,7 @@ class jw(object):
             self.delete_object(saturation,step=superbias_step) ## try to save memory
             
             
-            if (self.param['ROEBACorrection'] == True) | (self.param['ROEBACorrection'] == "GROEBA"):
+            if self.should_i_try_roeba() == True:
                 refpix_res = self.run_roeba(superbias)
                 
                 

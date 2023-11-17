@@ -109,3 +109,8 @@ ENV/
 
 # ES specific files
 tests/jtow_test_results/
+TODO.txt
+older_example_scripts/run_stage2_3sw_combined.py
+quick_stage2_SW.py
+quick_stage3_SW.py
+run_stage2_3lw_combined.py

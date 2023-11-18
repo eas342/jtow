@@ -1,2 +1,2 @@
-tshirt >0.3.1
+tshirt >=0.3.1
 jwst

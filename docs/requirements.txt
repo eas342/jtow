@@ -1,3 +1,2 @@
-celerite2 == 0.2.0
 tshirt >=0.3.1
 jwst

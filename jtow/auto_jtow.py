@@ -90,7 +90,8 @@ class auto_jtow(object):
         #directParam['custBias'] = 'selfBias' ## for now until a good set is prepped
         directParam['jumpRejectionThreshold'] = 6.0
         directParam['ROEBAmaskGrowthSize'] = 7
-        directParam['maxCores'] = 'none'
+        directParam['maxCores'] = 'quarter'
+        
         
         return directParam
     

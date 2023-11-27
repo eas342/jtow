@@ -9,13 +9,15 @@ parser.add_argument('inFile', metavar='F', type=str,
                     help='The input file. Or, in quotes a wildcard search for files')
 parser.add_argument('--iterations', metavar='I', type=int, default=1,
                     help='How many iterations of stage 1 to run to update background mask.')
-# parser.add_argument('--outDir', default='.',
+parser.add_argument('--skipExisting', metavar='S', type=bool, default=False,
+                    help='Skip existing files?')# parser.add_argument('--outDir', default='.',
 #                     help='The output directory')
 #
 
 args = parser.parse_args()
 
 
-auto_jtow.run_auto_jtow(searchString=args.inFile,iterations=args.iterations)
+auto_jtow.run_auto_jtow(searchString=args.inFile,iterations=args.iterations,
+                        skipExisting=args.skipExisting)
 #
 # pdb.set_trace()

@@ -13,13 +13,15 @@ defaultParamPath = pkg_resources.resource_filename('jtow',path_to_defaults)
 defaultParam = jtow.read_yaml(defaultParamPath)
 
 class auto_jtow(object):
-    def __init__(self,searchString,iteration=1):
+    def __init__(self,searchString,iteration=1,
+                 skipExisting=False):
         """
         An object to run an automatic pipeline wrapper run
         
         """
         self.gather_files(searchString)
         self.iteration = iteration
+        self.skipExisting = skipExisting
 
     
     def gather_files(self,searchString):
@@ -31,6 +33,12 @@ class auto_jtow(object):
         if len(self.fileList) == 0:
             warnings.warn("No files found at {}".format(searchString))
     
+    def predicted_output_name(self,uncalName):
+        """
+        Predicted the output name from the jtow stage 1
+        """
+        return uncalName.replace('_uncal.fits','_0_rampfitstep.fits')
+
     def find_rate_file(self,oneFile):
         """
         Find the default rate file but check if it exists
@@ -38,7 +46,7 @@ class auto_jtow(object):
         if self.iteration == 1:
             rate_file_guess = oneFile.replace('_uncal.fits','_rate.fits')
         else:
-            rate_file_guess = oneFile.replace('_uncal.fits','_0_rampfitstep.fits')
+            rate_file_guess = self.predicted_output_name(oneFile)
         
         if os.path.exists(rate_file_guess):
             rate_file = rate_file_guess
@@ -99,16 +107,29 @@ class auto_jtow(object):
         """ Run the jtow in a for loop """
         
         for ind,oneFile in enumerate(self.fileList):
-            directParam = self.set_up_parameters(oneFile)
-            self.run_jtow_one(directParam)
+            if self.skipExisting == True:
+                predicted_output = self.predicted_output_name(oneFile)
+                if os.path.exists(predicted_output):
+                    skipFile = True
+                    print("Alread found {}".format(predicted_output))
+                else:
+                    skipFile = False
+            else:
+                skipFile = False
+            if skipFile == True:
+                pass
+            else:
+                directParam = self.set_up_parameters(oneFile)
+                self.run_jtow_one(directParam)
     
     def run_jtow_one(self,directParam):
         jw = jtow.jw(directParam=directParam)
         jw.run_jw()
 
-def run_auto_jtow(searchString,iterations=1):
+def run_auto_jtow(searchString,iterations=1,skipExisting=False):
     for iteration in np.arange(iterations) + 1:
-        aj = auto_jtow(searchString,iteration=iteration)
+        aj = auto_jtow(searchString,iteration=iteration,
+                       skipExisting=skipExisting)
         aj.run_jtow()
     
     

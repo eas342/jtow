@@ -7,7 +7,6 @@ example_file = os.path.join(os.environ['JWSTDOWNLOAD_OUTDIR'],
                             '01185/uncal_obs_017_gj3470',
                             'jw01185017001_02102_00001-seg001_nrcalong_uncal.fits')
 
-
 def compare_recs(file1=example_file,
                  context1=1093,context2=1137):
     

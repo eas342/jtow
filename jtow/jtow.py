@@ -274,6 +274,8 @@ class jw(object):
                     if self.param['recenteredNIRCamGrism'] == True:
                         if firstHead['FILTER'] == 'F322W2':
                             mask1[4:,90:1999] = False
+                        elif firstHead['FILTER'] == 'F444W':
+                            mask1[4:,575:2018] = False
                         else:
                             raise NotImplementedError
                     else:

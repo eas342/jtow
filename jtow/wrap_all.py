@@ -32,15 +32,18 @@ class wrap(object):
     Wrapper to run everything
     """
 
-    def __init__(self,progID,obsNum):
+    def __init__(self,progID,obsNum,
+                 recenteredNIRCamGrism=False):
         """
         wrapper to run everything
+        recenteredNIRCam grism allows for offset position
         """
         self.progID = progID
         self.obsNum = obsNum
         self.mast_path = os.environ['JWSTDOWNLOAD_OUTDIR']
         self.prog_dir = os.path.join(self.mast_path,"{:05d}".format(self.progID))
         self.obs_dir = os.path.join(self.prog_dir,"obsnum{:02d}".format(self.obsNum))
+        self.recenteredNIRCamGrism = recenteredNIRCamGrism
 
     def run_all(self):
         self.lookup_configuration()
@@ -254,14 +257,16 @@ class wrap(object):
 
     def make_jtow_nrcalong(self):
         defaultParamPath = defaultParamPath_jtow_nrcalong
-        jtow_paramName = self.make_jtow_spec(defaultParamPath,detName='nrcalong')
+        jtow_paramName = self.make_jtow_spec(defaultParamPath,detName='nrcalong',
+                                             recenteredNIRCamGrism=self.recenteredNIRCamGrism)
         self.jtow_nrcalong_paramfile = jtow_paramName
 
     def make_jtow_nrs_grating(self,detector='nrs1'):
         defaultParamPath = defaultParamPath_jtow_nrs_grating
         return self.make_jtow_spec(defaultParamPath,detName=detector)
             
-    def make_jtow_spec(self,defaultParamPath,detName): 
+    def make_jtow_spec(self,defaultParamPath,detName,
+                       recenteredNIRCamGrism=False): 
         jtowParams = jtow.read_yaml(defaultParamPath)
         
         rawFileSearch = os.path.join(self.obs_dir,'{}_uncal_fits'.format(detName),
@@ -283,11 +288,14 @@ class wrap(object):
             origFileName = firstHead['FILENAME']
             rate_file_use = os.path.join(self.obs_dir,origFileName.replace('uncal.fits','rate.fits'))
             jtowParams['ROEBAmaskfromRate'] = rate_file_use
-
+        
         if "autoParamVersion" in jtowParams:
             autoParamVersion = jtowParams["autoParamVersion"]
         else:
             autoParamVersion = 1
+
+        if recenteredNIRCamGrism == True:
+            jtowParams['recenteredNIRCamGrism'] = recenteredNIRCamGrism
 
         jtow_paramName = "flight_{}_{}_{}_autoparam_{:03d}.yaml".format(firstHead['VISIT_ID'],
                                                                      detName,

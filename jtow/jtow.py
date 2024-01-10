@@ -122,7 +122,7 @@ class jw(object):
         if self.param['add_noutputs_keyword'] == True:
             warnings.warn("This code will modify the uncal file NOUTPUTS. This is DANGEROUS. Only use for older mirage simulations that lacked NOUTPUTS keyword")
 
-
+        self.set_up_crds()
         self.set_up_dirs()
         self.get_files()
         
@@ -151,7 +151,16 @@ class jw(object):
         else:
             raise Exception("Unrecognized simpleSlopes option {}. Options are None, Both and Only".format(simpelSlopes))
         
-        
+    def set_up_crds(self):
+        """ Set up the CRDS context """
+        if self.param['crdsContext'] is None:
+            pass
+        else:
+            ## copy the previous state
+            os.environ['CRDS_CONTEXT'] = self.param['crdsContext']
+            import crds
+    
+
     
     def get_parameters(self,paramFile,directParam=None):
         if directParam is None:

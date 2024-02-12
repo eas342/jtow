@@ -1213,3 +1213,102 @@ def mean_2axes(dat3D):
 
 def mean_1axis(dat2D):
     return np.nanmean(dat2D,axis=1)
+
+class batch_jtow:
+    """ 
+    Create several jtow objects to run phot over all of them
+    """
+    def __init__(self,batchFile):
+        self.alreadyLists = {'biasCycle': 1}
+        self.general_init(batchFile=batchFile)
+    
+    def general_init(self,batchFile):
+        self.batchFile = batchFile
+        self.batchParam = read_yaml(batchFile)
+        
+        ## Find keys that are lists. These are ones that are being run in batches
+        ## However, a few keywords are already lists (like [x,y] coordinates))
+        # and we are looking to see if those are lists of lists
+        ## the self.alreadyLists dictionary specifies the depth of the list
+        ## it could be a list of a list of list
+        self.paramLists = []
+        self.counts = []
+        for oneKey in self.batchParam.keys():
+            if oneKey in self.alreadyLists:
+                depth = self.alreadyLists[oneKey]
+                value = deepcopy(self.batchParam[oneKey])
+                ## Make sure the parameter is not None, so we won't be digging
+                if value != None:
+                    ## dig as far as the depth number to check for a list
+                    for oneDepth in np.arange(depth):
+                        value = value[0]
+                if type(value) == list:
+                    self.paramLists.append(oneKey)
+                    self.counts.append(len(self.batchParam[oneKey]))
+            else:
+                if type(self.batchParam[oneKey]) == list:
+                    self.paramLists.append(oneKey)
+                    self.counts.append(len(self.batchParam[oneKey]))
+        if len(self.counts) == 0:
+            raise Exception("No lists found to iterate over")
+        self.NDictionaries = self.counts[0]
+        ## Make sure there are a consistent number of parameters in each list
+        if np.all(np.array(self.counts) == self.NDictionaries) == False:
+            descrip1 = "Inconsistent parameter counts in {}.".format(self.batchFile)
+            descrip2 = "Parameters {} have counts {}".format(self.paramLists,self.counts)
+            raise Exception(descrip1+descrip2)
+        
+        self.paramDicts = []
+        for ind in np.arange(self.NDictionaries):
+            thisDict = {}
+            for oneKey in self.batchParam.keys():
+                if oneKey in self.paramLists:
+                    thisDict[oneKey] = self.batchParam[oneKey][ind]
+                else:
+                    thisDict[oneKey] = self.batchParam[oneKey]
+            self.paramDicts.append(thisDict)
+            
+    def print_all_dicts(self):
+        print(yaml.dump(self.paramDicts,default_flow_style=False))
+    
+    def make_jtow_obj(self,directParam):
+        """
+        Make a photometry pipeline object that will be executed in batch
+        """
+        return jw(directParam=directParam)
+    
+    def batch_run(self,method,**kwargs):
+        """
+        Run any method of the photometry class by name. This will 
+        cycle through all parameter lists and run the method
+        
+        Parameters
+        -----------
+        method: str
+           Photometry method to run in batch mode
+        
+        **kwargs: keywords or dict
+           Arguments to be passed to this method
+        
+        Returns
+        -------
+        batch_result: list or None
+            A list of results from the photometry method.
+            If all results are None, then batch_run returns None
+        
+        """
+        batch_result = []
+        for oneDict in self.paramDicts:
+            thisJ = self.make_jtow_obj(oneDict)
+            print("Working on {} for batch {}".format(method,
+                                                      thisJ.output_dir))
+            photMethod = getattr(thisJ,method)
+            result = photMethod(**kwargs)
+            batch_result.append(result)
+        if all(v is None for v in batch_result):
+            batch_result = None
+        
+        return batch_result
+    
+    def run_all(self):
+        self.batch_run('run_all')

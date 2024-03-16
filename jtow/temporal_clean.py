@@ -127,3 +127,31 @@ def clean_from_fileList(fileList,savePath,
     
     # In[16]:
 
+def make_specific_clean():
+    """
+    A script I made to mark a specific pixel
+    """
+    outDir = 'nrs1_proc/split_output/ff_cleaned_specific_px'
+    searchPath1 = 'nrs1_proc/split_output/ff_cleaned/*.fits'
+    #descrip = 'ff_cleaned'                                                                                                                                               
+
+    #searchPath1 = 'nrs1_proc/split_output/ff_div/*.fits'                                                                                                                 
+    #descrip = 'ff_div'                                                                                                                                                   
+    #searchPath1 = 'nrs1_proc/split_output/*.fits'                                                                                                                        
+    #descrip = 'rate'                                                                                                                                                     
+
+    fileList = np.sort(glob.glob(searchPath1))
+    nFile = len(fileList)
+    pxVal = []
+
+    intArr = np.arange(nFile)
+    nameArr = []
+    for ind in tqdm.tqdm(intArr):
+        oneFile = fileList[ind]
+        with fits.open(oneFile) as inHDU:
+            inHDU['SCI'].data[9,1861] = np.nan
+            oneName = os.path.basename(oneFile)
+            outName = oneName.replace('ff_cln.fits','ff_spfc_cln.fits')
+            inHDU.writeto(os.path.join(outDir,outName))
+
+

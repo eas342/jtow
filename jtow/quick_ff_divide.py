@@ -69,8 +69,26 @@ def quick_ff_divide(searchPath,customFlat=None):
             flatCube = fits.getdata(flatPath)
             nPlanes = flatCube.shape[0]
             flatData = flatCube[nPlanes // 2]
+            if head['SUBARRAY'] == 'SUB2048':
+                if head['DETECTOR'] == 'NRS1':
+                    customMask = True
+                    customPx_x = [929 , 1861]
+                    customPx_y = [ 18 , 9   ]
+                else:
+                    customMask = True
+                    customPx_x = [1974, 1975, 1976, 1976, 1976, 1975, 1974, 1974]
+                    customPx_y = [ 25,    25,  25 ,   24, , 23,   23,   23,   24]
+            else:
+                customMask = False
         else:
             flatData = fits.getdata(flatPath)
+            customMask = False
+        
+        if customMask == True:
+            customBadPxTable = Table()
+            customBadPxTable['x'] = customPx_x
+            customBadPxTable['y'] = customPx_y
+            pxHDU = fits.TableHDU(customBadPxTable)
         
         outName = os.path.basename(oneFile).replace('.fits','_ff.fits')
         outPath = os.path.join(outDir,outName)
@@ -91,7 +109,11 @@ def quick_ff_divide(searchPath,customFlat=None):
                                            'manual flat field file')
         HDUList['SCI'].header['FFDIV'] = (True,
                                           'Is the science frame divided by a flat?')
+        HDUList['SCI'].header['CUSTMSK'] = (customMask,
+                                          'Is the science frame divided by a flat?')
+        if customMask == True:
 
+            HDUList.append(pxHDU)
         HDUList.writeto(outPath,overwrite=True)
         HDUList.close()
     

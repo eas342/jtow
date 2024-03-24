@@ -17,9 +17,14 @@ import crds
 import tqdm
 from astropy.table import Table
 
-def quick_ff_divide(searchPath,customFlat=None):
+def quick_ff_divide(searchPath,customFlat=None,
+                    outputDir='ff_div'):
     """
     Divide the files by a flat field
+
+    outputDir: str
+        output directory name
+    
     """
     
     fileList = np.sort(glob.glob(searchPath))
@@ -28,7 +33,7 @@ def quick_ff_divide(searchPath,customFlat=None):
         head = fits.getheader(oneFile)
         
         ## make output path
-        outDir = os.path.join(os.path.split(oneFile)[0],'ff_div')
+        outDir = os.path.join(os.path.split(oneFile)[0],outputDir)
         if os.path.exists(outDir) == False:
             os.mkdir(outDir)
 

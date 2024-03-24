@@ -15,6 +15,7 @@ import os
 import glob
 import crds
 import tqdm
+from astropy.table import Table
 
 def quick_ff_divide(searchPath,customFlat=None):
     """
@@ -88,7 +89,8 @@ def quick_ff_divide(searchPath,customFlat=None):
             customBadPxTable = Table()
             customBadPxTable['x'] = customPx_x
             customBadPxTable['y'] = customPx_y
-            pxHDU = fits.TableHDU(customBadPxTable)
+            pxHDU = fits.BinTableHDU(customBadPxTable)
+            pxHDU.name = 'PXMASK'
         
         outName = os.path.basename(oneFile).replace('.fits','_ff.fits')
         outPath = os.path.join(outDir,outName)
@@ -105,15 +107,19 @@ def quick_ff_divide(searchPath,customFlat=None):
         HDUList['SCI'].data = HDUList['SCI'].data / subFlat
         badpt = (HDUList['DQ'].data & 2**0) > 0
         HDUList['SCI'].data[badpt] = np.nan
+        if customMask == True:
+            for badpxInd in np.arange(len(customPx_x)):
+                x1, y1 = customPx_x[badpxInd], customPx_y[badpxInd]
+                HDUList['SCI'].data[y1,x1] = np.nan
+            HDUList.append(pxHDU)
+        
         HDUList['SCI'].header['FFNAME'] = (os.path.basename(flatPath),
                                            'manual flat field file')
         HDUList['SCI'].header['FFDIV'] = (True,
                                           'Is the science frame divided by a flat?')
         HDUList['SCI'].header['CUSTMSK'] = (customMask,
                                           'Is the science frame divided by a flat?')
-        if customMask == True:
 
-            HDUList.append(pxHDU)
         HDUList.writeto(outPath,overwrite=True)
         HDUList.close()
     

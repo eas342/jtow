@@ -123,7 +123,7 @@ def quick_ff_divide(searchPath,customFlat=None,
         HDUList['SCI'].header['FFDIV'] = (True,
                                           'Is the science frame divided by a flat?')
         HDUList['SCI'].header['CUSTMSK'] = (customMask,
-                                          'Is the science frame divided by a flat?')
+                                          'Is a custom added mask of bad pixels forced to NaN')
 
         HDUList.writeto(outPath,overwrite=True)
         HDUList.close()

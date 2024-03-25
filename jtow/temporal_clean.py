@@ -22,7 +22,7 @@ savePath = os.path.join(os.environ['HOME'],
                        ('Documents/jwst/flight_data/proc/01185/'+
                        'gj3470_obs016_nrca3_proc_001_cleaned/'))
 
-fileList = np.sort(glob.glob(defSearchPath))
+#fileList = np.sort(glob.glob(defSearchPath))
 
 def clean_data(searchPath,savePath,thresholdSize=20,
                chunkSize=150):
@@ -51,6 +51,34 @@ def clean_data(searchPath,savePath,thresholdSize=20,
         clean_from_fileList(chunk,savePath=savePath,thresholdSize=thresholdSize)
     
 
+def get_imgCube_from_search(searchPath):
+    """
+    Get a cube from a search of images
+    """
+    fileList = np.sort(glob.glob(searchPath))
+    return get_imgCube(fileList)
+
+def get_imgCube(fileList):
+    """
+    Get a cube from a list of images
+    """
+    oneImg = fits.getdata(fileList[0])
+    oneErr = fits.getdata(fileList[0],extname='ERR')
+    nFile = len(fileList)
+    
+    ## Read in a cube of images
+    imgCube = np.zeros([nFile,oneImg.shape[0],oneImg.shape[1]])    
+    for ind,oneFile in enumerate(fileList):
+        imgCube[ind] = fits.getdata(oneFile)
+  
+    res = {}
+    res['oneImg'] = oneImg
+    res['oneErr'] = oneErr
+    res['nFile'] = nFile
+    res['imgCube'] = imgCube
+    return res
+
+
 def clean_from_fileList(fileList,savePath,
                         thresholdSize = 20):
     """
@@ -67,14 +95,12 @@ def clean_from_fileList(fileList,savePath,
         The rejection threshold in the temporal direction (sigma)
     """
     
-    oneImg = fits.getdata(fileList[0])
-    oneErr = fits.getdata(fileList[0],extname='ERR')
-    nFile = len(fileList)
+    res = get_imgCube(fileList=fileList)
+    oneImg = res['oneImg']
+    oneErr = res['oneErr']
+    imgCube = res['imgCube']
+    nFile = res['nFile']
     
-    ## Read in a cube of images
-    imgCube = np.zeros([nFile,oneImg.shape[0],oneImg.shape[1]])    
-    for ind,oneFile in enumerate(fileList):
-        imgCube[ind] = fits.getdata(oneFile)
     
     ## find outliers
     medImg = np.nanmedian(imgCube,axis=0)

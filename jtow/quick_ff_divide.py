@@ -81,9 +81,7 @@ def quick_ff_divide(searchPath,customFlat=None,
                     customPx_x = [929 , 1861]
                     customPx_y = [ 18 , 9   ]
                 else:
-                    customMask = True
-                    customPx_x = [1974, 1975, 1976, 1976, 1976, 1975, 1974, 1974]
-                    customPx_y = [ 25,    25,  25 ,   24,   23,   23,   23,   24]
+                    customMask = False
             else:
                 customMask = False
         else:

@@ -126,7 +126,7 @@ class wrap(object):
                 uncal_search2 = os.path.join(spec_uncal_dir2,'*uncal.fits')
                 make_minisegments.loop_minisegments(uncal_search2)
         else:
-            raise NotImplentedError
+            raise NotImplementedError
     
     def get_SW_starPos(self,firstHead):
         if self.LWFilter == 'F444W':

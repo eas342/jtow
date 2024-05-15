@@ -87,8 +87,16 @@ class wrap(object):
         
         ta_search_path = os.path.join(self.obs_dir,ta_search)
         ta_dir = os.path.join(self.obs_dir,'ta_files')
-        
         move_or_link_files(ta_search_path,ta_dir,operation='link')
+
+        if self.instrument == 'MIRI':
+            dirimg_search = 'jw{:05d}{:03d}???_04102*'.format(self.progID,self.obsNum)
+            dirimg_search_path = os.path.join(self.obs_dir,dirimg_search)
+            dirimg_dir = os.path.join(self.obs_dir,'dirimg_files')
+            move_or_link_files(dirimg_search_path,dirimg_dir,operation='link')
+        else:
+            dirimg_search_path = ''
+        
         specFileTable = make_fileTable(os.path.join(self.obs_dir,'jw*'))
         unique_descriptors = np.unique(specFileTable['suffix'])
         for oneSuffix in unique_descriptors:
@@ -96,7 +104,8 @@ class wrap(object):
             fileSearch = os.path.join(self.obs_dir,'*{}'.format(oneSuffix))
             move_or_link_files(fileSearch,descriptor_path,
                                operation='link',
-                               excludeSearch=ta_search_path)
+                               excludeSearch=ta_search_path,
+                               excludeSearch2=dirimg_search_path)
             
     def make_miniseg(self):
         if self.instrument == 'NIRCAM':
@@ -125,6 +134,10 @@ class wrap(object):
                 spec_uncal_dir2 = os.path.join(self.obs_dir,'nrs2_uncal_fits')
                 uncal_search2 = os.path.join(spec_uncal_dir2,'*uncal.fits')
                 make_minisegments.loop_minisegments(uncal_search2)
+        elif self.instrument == 'MIRI':
+            spec_uncal_dir = os.path.join(self.obs_dir,'mirimage_uncal_fits')
+            uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
+            make_minisegments.loop_minisegments(uncal_search)
         else:
             raise NotImplementedError
     
@@ -361,11 +374,14 @@ def ensure_directory(path):
 
 
 def move_or_link_files(searchPath,destinationDir,excludeSearch='',
-                       operation='link'):
+                       operation='link',
+                       excludeSearch2=''):
     fileList = np.sort(glob.glob(searchPath))
     ensure_directory(destinationDir)
 
-    excludeList = glob.glob(excludeSearch)
+    excludeList1 = glob.glob(excludeSearch)
+    excludeList2 = glob.glob(excludeSearch2)
+    excludeList = excludeList1 + excludeList2
     for oneFile in fileList:
         baseName = os.path.basename(oneFile)
         outName = os.path.join(destinationDir,baseName)

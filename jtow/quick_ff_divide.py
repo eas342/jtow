@@ -37,10 +37,7 @@ def quick_ff_divide(searchPath,customFlat=None,
         if os.path.exists(outDir) == False:
             os.mkdir(outDir)
 
-        if head['INSTRUME'] == 'NIRSPEC':
-            instrumName = 'nirspec'
-        else:
-            instrumName = 'nircam'
+        instrumName = head['INSTRUME'].lower()
         
         crds_path = os.path.join(os.environ['CRDS_PATH'],'references','jwst',instrumName)
         if 'PUPIL' in head:
@@ -84,6 +81,9 @@ def quick_ff_divide(searchPath,customFlat=None,
                     customMask = False
             else:
                 customMask = False
+        elif instrumName == 'miri':
+            flatData = fits.getdata(flatPath,extname='SCI')
+            customMask = False
         else:
             flatData = fits.getdata(flatPath)
             customMask = False
@@ -105,8 +105,10 @@ def quick_ff_divide(searchPath,customFlat=None,
         yEnd = yStart + HDUList[0].header['SUBSIZE2']
 
         
-
-        subFlat = flatData[yStart:yEnd,xStart:xEnd]
+        if instrumName == 'miri':
+            subFlat = flatData
+        else:
+            subFlat = flatData[yStart:yEnd,xStart:xEnd]
         HDUList['SCI'].data = HDUList['SCI'].data / subFlat
         badpt = (HDUList['DQ'].data & 2**0) > 0
         HDUList['SCI'].data[badpt] = np.nan

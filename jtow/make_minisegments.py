@@ -97,13 +97,13 @@ def mini_split_one_seg(uncal_path=def_uncal_path,diagnostics=False,
 
 # In[ ]:
 
-def loop_minisegments(fileSearch):
+def loop_minisegments(fileSearch,reDo=False):
     fileList = np.sort(glob.glob(fileSearch))
     for oneFile in fileList:
         if os.path.exists(oneFile) == False:
             ## for symbolic links, check if they exist
             warnings.warn("File {} does not exist".format(oneFile))
         else:
-            mini_split_one_seg(oneFile)
+            mini_split_one_seg(oneFile,reDo=reDo)
 
 

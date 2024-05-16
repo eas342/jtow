@@ -107,12 +107,12 @@ class wrap(object):
                                excludeSearch=ta_search_path,
                                excludeSearch2=dirimg_search_path)
             
-    def make_miniseg(self):
+    def make_miniseg(self,reDo=False):
         if self.instrument == 'NIRCAM':
             spec_uncal_dir = os.path.join(self.obs_dir,'nrcalong_uncal_fits')
             uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
             self.LWdetSearchPath = uncal_search
-            make_minisegments.loop_minisegments(uncal_search)
+            make_minisegments.loop_minisegments(uncal_search,reDo=reDo)
             first_uncal = np.sort(glob.glob(uncal_search))[0]
             firstHead = fits.getheader(first_uncal)
             self.LWFilter = firstHead['FILTER']
@@ -125,19 +125,19 @@ class wrap(object):
             self.SWprocDir = self.SWdetSearch.replace('uncal_fits','proc')
                 
             self.SWdetSearchPath = os.path.join(self.obs_dir,self.SWdetSearch,'*uncal.fits')
-            make_minisegments.loop_minisegments(self.SWdetSearchPath)
+            make_minisegments.loop_minisegments(self.SWdetSearchPath,reDo=reDo)
         elif self.instrument == 'NIRSPEC':
             spec_uncal_dir = os.path.join(self.obs_dir,'nrs1_uncal_fits')
             uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
-            make_minisegments.loop_minisegments(uncal_search)
+            make_minisegments.loop_minisegments(uncal_search,reDo=reDo)
             if self.grating != 'PRISM':
                 spec_uncal_dir2 = os.path.join(self.obs_dir,'nrs2_uncal_fits')
                 uncal_search2 = os.path.join(spec_uncal_dir2,'*uncal.fits')
-                make_minisegments.loop_minisegments(uncal_search2)
+                make_minisegments.loop_minisegments(uncal_search2,reDo=reDo)
         elif self.instrument == 'MIRI':
             spec_uncal_dir = os.path.join(self.obs_dir,'mirimage_uncal_fits')
             uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
-            make_minisegments.loop_minisegments(uncal_search)
+            make_minisegments.loop_minisegments(uncal_search,reDo=reDo)
         else:
             raise NotImplementedError
     

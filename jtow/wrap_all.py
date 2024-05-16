@@ -25,6 +25,9 @@ defaultParamPath_jtow_nrs_grating = pkg_resources.resource_filename('jtow',
 defaultParamPath_tshirt_nrs_grating = pkg_resources.resource_filename('jtow',
                                                                'params/default_tshirt_nrs_grating.yaml')
 
+defaultParamPath_jtow_miri = pkg_resources.resource_filename('jtow',
+                                                             'params/default_miri_lrs.yaml')
+
 tshirt_baseDir = phot_pipeline.get_baseDir()
 
 class wrap(object):
@@ -68,6 +71,10 @@ class wrap(object):
                     spec = spec_pipeline.spec(tshirt_param)
                     spec.showStarChoices(showPlot=False)
                     spec.do_extraction(useMultiprocessing=True)
+        elif self.instrument == 'MIRI':
+            miri_paramFile = self.make_jtow_miri_lrs()
+            jw = jtow.jw(miri_paramFile)
+            jw.run_all()
                 
         #self.run_tshirt()
 
@@ -277,6 +284,10 @@ class wrap(object):
     def make_jtow_nrs_grating(self,detector='nrs1'):
         defaultParamPath = defaultParamPath_jtow_nrs_grating
         return self.make_jtow_spec(defaultParamPath,detName=detector)
+    
+    def make_jtow_miri_lrs(self):
+        defaultParamPath = defaultParamPath_jtow_miri
+        return self.make_jtow_spec(defaultParamPath,detName='miriimage')
             
     def make_jtow_spec(self,defaultParamPath,detName,
                        recenteredNIRCamGrism=False): 

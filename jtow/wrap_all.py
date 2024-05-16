@@ -287,7 +287,7 @@ class wrap(object):
     
     def make_jtow_miri_lrs(self):
         defaultParamPath = defaultParamPath_jtow_miri
-        return self.make_jtow_spec(defaultParamPath,detName='miriimage')
+        return self.make_jtow_spec(defaultParamPath,detName='mirimage')
             
     def make_jtow_spec(self,defaultParamPath,detName,
                        recenteredNIRCamGrism=False): 

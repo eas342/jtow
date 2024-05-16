@@ -977,7 +977,7 @@ class jw(object):
         Run JWST stage1
         """
         if self.param['pipelinePath'] == 'MIRI-Stage1':
-            assert (jwst.__version__ > "1.14")
+            assert (jwst.__version__ > "1.13")
             steps={'jump': {'rejection_threshold': self.param['jumpRejectionThreshold'], 
                             'save_results':self.param['saveJumpStep']},
                    'emicorr':{'skip': False},

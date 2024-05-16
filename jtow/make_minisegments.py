@@ -85,6 +85,9 @@ def mini_split_one_seg(uncal_path=def_uncal_path,diagnostics=False,
                 shortHDU_zero = fits.ImageHDU(HDUList['ZEROFRAME'].data[relstart:relend],HDUList['ZEROFRAME'].header)
                 shortHDUList.append(shortHDU_zero)
             
+            if 'REFOUT' in HDUList:
+                shortHDU_refout = fits.ImageHDU(HDUList['REFOUT'].data[relstart:relend],HDUList['REFOUT'].header)
+                shortHDUList.append(shortHDU_refout)
             
             shortHDUList.writeto(outPath,overwrite=True)
             

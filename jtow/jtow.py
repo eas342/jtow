@@ -1187,6 +1187,8 @@ class jw(object):
         """
         if self.param['simpleSlopes'] == 'LastGroup':
             searchString = '*_lstGrp_slopes.fits'
+        elif self.param['pipelinePath'] == 'MIRI-Stage1':
+            searchString = '*_rateints.fits'
         else:
             searchString = '*1_rampfitstep.fits'
         

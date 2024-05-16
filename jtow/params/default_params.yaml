@@ -33,3 +33,5 @@ useGrismRefpx: False
 forceHeaderChange: null
 recenteredNIRCamGrism: False
 crdsContext: null
+pipelinePath: 'step-by-step'
+emicCorr: True

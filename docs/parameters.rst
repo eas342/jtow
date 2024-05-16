@@ -9,6 +9,8 @@ The default parameters can be found at :ref:`the default parameters <default-par
 
 Here are some descriptions of what the parameters do.
 
+:code:`pipelinePath`
+What kind of use of the :code:`jwst` pipeline will it go through? Usually it is a custom :code:`'step-by-step'`. Alternatively, one case use more default stage 1 processing with :code:`MIRI-Stage1` for MIRI data
 
 :code:`custBias`
 ~~~~~~~~~~~~~~~~~
@@ -118,3 +120,7 @@ Set a custom data quality array for after the saturation step to manually set so
 :code:`skipJumpDet`
 ~~~~~~~~~~~~~~~~~~~~~~
 Skip the jump detection step? Passed to the jump detection skip parameter. If True, it is skipped.
+
+:code:`emicorr`
+~~~~~~~~~~~~~~~~~~~~~~
+If True, run the STSCi pipeline's emicorr step for 390Hz and other noise corrections. 

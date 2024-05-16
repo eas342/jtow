@@ -947,6 +947,221 @@ class jw(object):
         gc.collect()
         pass
     
+    def run_jwst_stage1(self,uncal_file):
+        """
+        Run JWST stage1
+        """
+        if self.param['pipelinePath'] == 'MIRI-Stage1':
+            assert (jwst.__version__ > "1.14")
+            steps={'jump': {'rejection_threshold': self.param['jumpRejectionThreshold'], 
+                            'save_results':self.param['saveJumpStep']},
+                   'emicorr':{'skip': False},
+                   'firstframe': {'skip': False},
+                    'lastframe': {'skip': False},
+                    'ramp_fit': {'maximum_cores': self.param['maxCores']}}
+        else:
+            raise NotImplementedError
+        result = Detector1Pipeline.call(uncal_file,
+                                        save_results=True,
+                                        output_dir = self.output_dir,
+                                        steps=steps)
+#                                         logcfg='logsettings.cfg',
+
+#                                               'ramp_fit': {'maximum_cores': 'quarter'}})
+
+    def run_jwst_step_by_step(self,uncal_file):
+        """
+        Run JWST step by step
+        """
+        # Using the run() method. Instantiate and set parameters
+        dq_init_step = DQInitStep()
+        dq_init = dq_init_step.run(uncal_file)
+        
+        
+        # ## Saturation Flagging
+        # Using the run() method
+        saturation_step = SaturationStep()
+        # Call using the the output from the previously-run dq_init step
+        saturation = saturation_step.run(dq_init)
+        self.delete_object(dq_init) ## try to save memory
+
+        # Using the run() method
+        superbias_step = SuperBiasStep()
+        
+        if self.param['custBias'] is None:
+            pass
+        elif self.param['custBias'] == 'selfBias':
+            superbias_step.skip = True
+            saturation.data = saturation.data - saturation.data[0][0]
+        elif self.param['custBias'] == 'cycleBias':
+            superbias_step.skip = True
+            saturation.data = self.cycleBiasSub(saturation)
+        elif self.param['custBias'] == 'lineIntercept':
+            superbias_step.skip = True
+            saturation.data = self.lineInterceptBias(saturation)
+        else:
+            superbias_step.override_superbias = self.param['custBias']
+        
+        if self.param['saveBiasStep'] == True:
+            superbias_step.output_dir = self.output_dir
+            superbias_step.save_results = True
+            if self.param['custBias'] in ['selfBias','cycleBias','lineIntercept']:
+                ## Have to save it manually if this step is skipped because of self bias subtraction
+                origName = deepcopy(saturation.meta.filename)
+                if '_uncal.fits' in origName:
+                    outName = origName.replace('_uncal.fits','_superbiasstep.fits')
+                else:
+                    outName = 'cust_superbiasstep.fits'
+                
+                outPath = os.path.join(self.output_dir,outName)
+                saturation.to_fits(outPath,overwrite=True)
+                
+                ## try to return filename back to original
+                saturation.meta.filename = origName
+
+        # Call using the the output from the previously-run saturation step
+        superbias = superbias_step.run(saturation)
+        
+        ngroups = superbias.meta.exposure.ngroups
+        nints = superbias.data.shape[0] ## use the array size because segmented data could have fewer ints
+        
+        if self.param['custGroupDQfile'] is not None:
+            custGroupDQ = fits.getdata(self.param['custGroupDQfile'])
+            tiled_custGroup = np.tile(custGroupDQ,[nints,1,1,1])
+            superbias.groupdq = (superbias.groupdq | tiled_custGroup)
+            
+        self.delete_object(saturation,step=superbias_step) ## try to save memory
+        
+        
+        if self.should_i_try_roeba() == True:
+            refpix_res = self.run_roeba(superbias)
+            
+            
+            
+        else:
+            # Instantiate and set parameters
+            refpix_step = RefPixStep()
+            refpix_step.output_dir = self.output_dir
+            if self.param['saveROEBAdiagnostics'] == True:
+                refpix_step.save_results = True
+            
+            refpix_step.side_smoothing_length=self.param['side_smoothing_length']
+            refpix_res = refpix_step.run(superbias)
+        
+            self.delete_object(superbias,step=refpix_step) ## try to save memory
+        
+        # # Linearity Step   
+        # Using the run() method
+        linearity_step = LinearityStep()
+        
+        if self.param['doLincor'] == True:
+            linearity_step.skip = False
+        elif self.param['doLincor'] == False:
+            linearity_step.skip = True
+        else:
+            raise Exception("Unrecognized doLincor value {}".format(self.param['doLinearity']))
+            
+        
+        linearity = linearity_step.run(refpix_res)
+        
+        self.delete_object(refpix_res,step=linearity_step)
+        
+        # # Persistence Step
+
+        # Using the run() method
+        #persist_step = PersistenceStep()
+        #
+        ## skip for now since ref files are zeros
+        #persist_step.skip = True
+        #
+        #persist = persist_step.run(linearity)
+        #self.delete_object(linearity) ## try to save memory
+
+        # # Dark current step
+
+        # Using the run() method
+        #dark_step = DarkCurrentStep()
+        #
+        # There was a CRDS error so I'm skipping
+        #dark_step.skip = True
+
+        # Call using the persistence instance from the previously-run
+        # persistence step
+        #dark = dark_step.run(persist)
+        
+        #self.delete_object(persist)
+
+        ## to save memory, just move on without running a step with skip=True
+        dark_result = linearity
+        # # Jump Step
+        # In[335]:
+
+
+        # Using the run() method
+        jump_step = JumpStep()
+        #jump_step.output_dir = output_dir
+        #jump_step.save_results = True
+        jump_step.rejection_threshold = self.param['jumpRejectionThreshold']
+        jump_step.skip = self.param['skipJumpDet']
+        
+        jump_step.maximum_cores = self.max_cores
+        
+        jump_step.flag_4_neighbors = self.param['jumpStepFlag4Neighbors']
+        
+        if self.param['saveJumpStep'] == True:
+            jump_step.output_dir = self.output_dir
+            jump_step.save_results = True
+        else:
+            pass
+        
+        # Call using the dark instance from the previously-run
+        # dark current subtraction step
+        jump = jump_step.run(dark_result)
+        
+        self.delete_object(dark_result,step=jump_step)
+        
+        # # Ramp Fitting
+
+        # In[344]:
+
+        ## Do a simple ramp fit if parameters are set
+        if self.do_simple_ramp_fit == True:
+            self.simple_ramp_fit(jump,uncal_file)
+        elif self.do_simple_ramp_fit == 'LastGroup':
+            self.custom_ramp_fit(jump,uncal_file,method='last group')
+        elif self.do_simple_ramp_fit == False:
+            pass
+        else:
+            raise Exception("Unrecognized value of do_simple_ramp_fit {}".format(self.do_simple_ramp_fit))
+
+        if self.do_full_ramp_fit == True:
+            # Using the run() method
+            ramp_fit_step = RampFitStep()
+            ramp_fit_step.weighting = self.param['rampFitWeighting']
+            
+            ramp_fit_step.maximum_cores = self.max_cores
+
+            ramp_fit_step.output_dir = self.output_dir
+            ramp_fit_step.save_results = True
+            
+            if hasattr(ramp_fit_step,'suppress_one_group'):
+                ramp_fit_step.suppress_one_group = self.param['suppressOneGroup']
+            
+            # Let's save the optional outputs, in order
+            # to help with visualization later
+            #ramp_fit_step.save_opt = True
+        
+
+        
+            # Call using the dark instance from the previously-run
+            # jump step
+            ramp_fit0, ramp_fit1 = ramp_fit_step.run(jump)
+            
+            self.delete_object(ramp_fit0)
+            self.delete_object(ramp_fit1)
+        
+        self.delete_object(jump) ## try to save memory
+
     def run_jw(self):
         """
         Run the JWST pipeline for all uncal files
@@ -955,194 +1170,11 @@ class jw(object):
         startTime = time.time() #Time how long this step takes
         
         for uncal_file in self.all_uncal_files:
-                # Using the run() method. Instantiate and set parameters
-            dq_init_step = DQInitStep()
-            dq_init = dq_init_step.run(uncal_file)
-            
-            
-            # ## Saturation Flagging
-            # Using the run() method
-            saturation_step = SaturationStep()
-            # Call using the the output from the previously-run dq_init step
-            saturation = saturation_step.run(dq_init)
-            self.delete_object(dq_init) ## try to save memory
-    
-            # Using the run() method
-            superbias_step = SuperBiasStep()
-            
-            if self.param['custBias'] is None:
-                pass
-            elif self.param['custBias'] == 'selfBias':
-                superbias_step.skip = True
-                saturation.data = saturation.data - saturation.data[0][0]
-            elif self.param['custBias'] == 'cycleBias':
-                superbias_step.skip = True
-                saturation.data = self.cycleBiasSub(saturation)
-            elif self.param['custBias'] == 'lineIntercept':
-                superbias_step.skip = True
-                saturation.data = self.lineInterceptBias(saturation)
-            else:
-                superbias_step.override_superbias = self.param['custBias']
-            
-            if self.param['saveBiasStep'] == True:
-                superbias_step.output_dir = self.output_dir
-                superbias_step.save_results = True
-                if self.param['custBias'] in ['selfBias','cycleBias','lineIntercept']:
-                    ## Have to save it manually if this step is skipped because of self bias subtraction
-                    origName = deepcopy(saturation.meta.filename)
-                    if '_uncal.fits' in origName:
-                        outName = origName.replace('_uncal.fits','_superbiasstep.fits')
-                    else:
-                        outName = 'cust_superbiasstep.fits'
-                    
-                    outPath = os.path.join(self.output_dir,outName)
-                    saturation.to_fits(outPath,overwrite=True)
-                    
-                    ## try to return filename back to original
-                    saturation.meta.filename = origName
-    
-            # Call using the the output from the previously-run saturation step
-            superbias = superbias_step.run(saturation)
-            
-            ngroups = superbias.meta.exposure.ngroups
-            nints = superbias.data.shape[0] ## use the array size because segmented data could have fewer ints
-            
-            if self.param['custGroupDQfile'] is not None:
-                custGroupDQ = fits.getdata(self.param['custGroupDQfile'])
-                tiled_custGroup = np.tile(custGroupDQ,[nints,1,1,1])
-                superbias.groupdq = (superbias.groupdq | tiled_custGroup)
-                
-            self.delete_object(saturation,step=superbias_step) ## try to save memory
-            
-            
-            if self.should_i_try_roeba() == True:
-                refpix_res = self.run_roeba(superbias)
-                
-                
-                
-            else:
-                # Instantiate and set parameters
-                refpix_step = RefPixStep()
-                refpix_step.output_dir = self.output_dir
-                if self.param['saveROEBAdiagnostics'] == True:
-                    refpix_step.save_results = True
-                
-                refpix_step.side_smoothing_length=self.param['side_smoothing_length']
-                refpix_res = refpix_step.run(superbias)
-            
-                self.delete_object(superbias,step=refpix_step) ## try to save memory
-            
-            # # Linearity Step   
-            # Using the run() method
-            linearity_step = LinearityStep()
-            
-            if self.param['doLincor'] == True:
-                linearity_step.skip = False
-            elif self.param['doLincor'] == False:
-                linearity_step.skip = True
-            else:
-                raise Exception("Unrecognized doLincor value {}".format(self.param['doLinearity']))
-                
-            
-            linearity = linearity_step.run(refpix_res)
-            
-            self.delete_object(refpix_res,step=linearity_step)
-            
-            # # Persistence Step
-    
-            # Using the run() method
-            #persist_step = PersistenceStep()
-            #
-            ## skip for now since ref files are zeros
-            #persist_step.skip = True
-            #
-            #persist = persist_step.run(linearity)
-            #self.delete_object(linearity) ## try to save memory
-    
-            # # Dark current step
-    
-            # Using the run() method
-            #dark_step = DarkCurrentStep()
-            #
-            # There was a CRDS error so I'm skipping
-            #dark_step.skip = True
-    
-            # Call using the persistence instance from the previously-run
-            # persistence step
-            #dark = dark_step.run(persist)
-            
-            #self.delete_object(persist)
 
-            ## to save memory, just move on without running a step with skip=True
-            dark_result = linearity
-            # # Jump Step
-            # In[335]:
-    
-    
-            # Using the run() method
-            jump_step = JumpStep()
-            #jump_step.output_dir = output_dir
-            #jump_step.save_results = True
-            jump_step.rejection_threshold = self.param['jumpRejectionThreshold']
-            jump_step.skip = self.param['skipJumpDet']
-            
-            jump_step.maximum_cores = self.max_cores
-            
-            jump_step.flag_4_neighbors = self.param['jumpStepFlag4Neighbors']
-            
-            if self.param['saveJumpStep'] == True:
-                jump_step.output_dir = self.output_dir
-                jump_step.save_results = True
+            if self.param['pipelinePath'] == 'step-by-step':
+                self.run_jwst_step_by_step(uncal_file)
             else:
-                pass
-            
-            # Call using the dark instance from the previously-run
-            # dark current subtraction step
-            jump = jump_step.run(dark_result)
-            
-            self.delete_object(dark_result,step=jump_step)
-            
-            # # Ramp Fitting
-    
-            # In[344]:
-    
-            ## Do a simple ramp fit if parameters are set
-            if self.do_simple_ramp_fit == True:
-                self.simple_ramp_fit(jump,uncal_file)
-            elif self.do_simple_ramp_fit == 'LastGroup':
-                self.custom_ramp_fit(jump,uncal_file,method='last group')
-            elif self.do_simple_ramp_fit == False:
-                pass
-            else:
-                raise Exception("Unrecognized value of do_simple_ramp_fit {}".format(self.do_simple_ramp_fit))
-
-            if self.do_full_ramp_fit == True:
-                # Using the run() method
-                ramp_fit_step = RampFitStep()
-                ramp_fit_step.weighting = self.param['rampFitWeighting']
-                
-                ramp_fit_step.maximum_cores = self.max_cores
-    
-                ramp_fit_step.output_dir = self.output_dir
-                ramp_fit_step.save_results = True
-                
-                if hasattr(ramp_fit_step,'suppress_one_group'):
-                    ramp_fit_step.suppress_one_group = self.param['suppressOneGroup']
-                
-                # Let's save the optional outputs, in order
-                # to help with visualization later
-                #ramp_fit_step.save_opt = True
-            
-
-            
-                # Call using the dark instance from the previously-run
-                # jump step
-                ramp_fit0, ramp_fit1 = ramp_fit_step.run(jump)
-                
-                self.delete_object(ramp_fit0)
-                self.delete_object(ramp_fit1)
-            
-            self.delete_object(jump) ## try to save memory
+                self.run_jwst_stage1(uncal_file)
             
     
     

@@ -1,0 +1,13 @@
+ROEBACorrection: false
+ROEBAK: false
+add_noutputs_keyword: false
+autoROEBAmasks: false
+biasCycle: null
+biasCycleSearch: null
+custBias: null
+jumpRejectionThreshold: 7
+maxCores: half
+saveBiasStep: false
+saveROEBAdiagnostics: false
+simpleSlopes: null
+pipelinePath: MIRI-Stage1

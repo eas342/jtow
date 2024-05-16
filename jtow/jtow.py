@@ -127,6 +127,7 @@ class jw(object):
         self.get_files()
         
         self.make_descrip()
+        self.make_output_search_string()
         
         self.max_cores = self.param['maxCores']
         
@@ -150,6 +151,8 @@ class jw(object):
             self.do_simple_ramp_fit = 'LastGroup'
         else:
             raise Exception("Unrecognized simpleSlopes option {}. Options are None, Both and Only".format(simpelSlopes))
+        
+
         
     def set_up_crds(self):
         """ Set up the CRDS context """
@@ -218,6 +221,19 @@ class jw(object):
             all_uncal_files.append(fitsName)
     
         self.all_uncal_files = sorted(all_uncal_files) #sort files alphabetically.
+        
+    def make_output_search_string(self):
+        if self.param['simpleSlopes'] == 'LastGroup':
+            searchString = '*_lstGrp_slopes.fits'
+            searchStringRate = '*0_rampfitstep.fits'
+        elif self.param['pipelinePath'] == 'MIRI-Stage1':
+            searchString = '*_rateints.fits'
+            searchStringRate = '*_rate.fits'
+        else:
+            searchString = '*1_rampfitstep.fits'
+            searchStringRate = "*0_rampfitstep.fits"
+        self.jwOutSearchString = searchString
+        self.jwOutSearchStringRate = searchStringRate
     
     def make_descrip(self):
         """
@@ -777,7 +793,7 @@ class jw(object):
     def collect_refpix_series(self):
         ## Get the reference pixel mask from a processed file
         
-        procFileSearch = os.path.join(self.param['outputDir'],"*0_rampfitstep.fits")
+        procFileSearch = os.path.join(self.param['outputDir'],self.jwOutSearchStringRate)
         procFiles = np.sort(glob.glob(procFileSearch))
         if len(procFiles) == 0:
             raise Exception("No files found at {}. Try running the pipeline first".format(procFileSearch))
@@ -869,6 +885,15 @@ class jw(object):
                 activePixRside = mean_3axes(sciData[:,:,4:10,1538:2044])
                 active_px_R = np.append(active_px_R,activePixRside)
             else:
+                refpix_mean_Lside = np.nan
+                refpix_mean_Rside = np.nan
+                refpix_mean_bottom = np.nan
+                refpix_mean_slope = np.nan
+                refpix_mean_xgrad = np.nan
+                refpix_mean_ygrad_L = np.nan
+                refpix_mean_ygrad_R = np.nan
+                active_px_L = np.nan
+                active_px_R = np.nan
                 warnings.warn('X dimension not 2048, not attempting to save side refpix and gradients')
 
             
@@ -1185,13 +1210,8 @@ class jw(object):
         """
         Split up the rateints files into individual ones
         """
-        if self.param['simpleSlopes'] == 'LastGroup':
-            searchString = '*_lstGrp_slopes.fits'
-        elif self.param['pipelinePath'] == 'MIRI-Stage1':
-            searchString = '*_rateints.fits'
-        else:
-            searchString = '*1_rampfitstep.fits'
-        
+        searchString = self.jwOutSearchString
+
         filesToSplit = os.path.join(self.param['outputDir'],searchString)
         splintegrate.run_on_multiple(inFiles=filesToSplit,
                                     outDir=self.splitDir,overWrite=True,

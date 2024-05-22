@@ -261,6 +261,7 @@ class wrap(object):
             filterDescrip = '{}_{}'.format(firstHead['GRATING'],detector)
         elif (self.instrument == 'MIRI'):
             filterDescrip = 'lrs'
+            dispPixels = specParams['dispPixels'] ## just copy default, no filter change
         else:
             raise NotImplementedError
         

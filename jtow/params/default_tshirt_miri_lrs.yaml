@@ -1,0 +1,48 @@
+## procFiles: /fenrirdata1/es_tso/flight_data/01177/obsnum02/mirimage_proc/split_output/ff_cleaned/*.fits
+excludeList: null
+## srcName: WASP 80 b
+## srcNameShort: p001
+## nightName: prog01177_obs02_wasp80full
+dispDirection: y ## dispersion direction 'x' or 'y'
+bkgSubDirections: ['X'] ## Order in which to do background subtractions
+starPositions: ## positions of the stars in the spatial direction. The first one is the target
+   - 37
+refPhotCentering: null ## photometry fits file where to obtain centroid shifts to apply from 1 star/source
+bkgRegionsX: ## a list of background regions in the X direction
+   - [10,70]
+bkgOrderX: 0 ## order of polynomial subtraction in the X direction
+bkgRegionsY: ## a list of background regions in the Y direction
+   - [0,1]
+bkgOrderY: 1 ## order of polynomial subtraction in the Y direction
+backPreScreen: True ## Pre-screen the background for outliers before trying to fit?
+apWidth: 8. ## Source aperture width
+dispPixels: [1, 403] ## pixels to use in the dispersion direction
+jdRef: 2457551 ## JD reference offset to subtract for plotting
+timingMethod: null ## how to assign integration times? None, 'JWSTint' will add int time to exposure start
+dateKeyword: BJDMID ## mid UTC time
+dateFormat: MJD ## Format of date. "Two Part" is split over DATE-OBS and TIME-OBS, whereas "One Part" is all in DATE-OBS
+isCube: False ## Is the data a cube (3D)?
+cubePlane: 0 ## The plane to choose if data is in cubes
+doCentering: False ## Center the aperturess with Gaussian?
+FITSextension: 'SCI' ## FITS extension of science frames
+HEADextension: 0 ## FITS extension of the header info (for exposure and timing)
+isSlope: True ## Is the FITS image a slope image that should be multiplied by the int time?
+readNoise: 6. ## Read noise in electrons
+detectorGain: 4. ## Optionally specify the detector gain e-/DN
+waveCalMethod: miri_lrs ## the wavelength calibration method (None/null, NIRCamTS)
+waveCalOffset: 0.0 ## offset to the wavelength calibration, subtracted afterwards
+readNoiseCorrelation: True ## Treat the read noise as correlated across pixels?
+readNoiseCorrVal: 0.08 ## The value of reaad noise correlation (if handling read Noise correlation)
+ignorePhotNoiseInCovariance: False ## a diagnostic parameter to see covariance weights w/ out photon noise
+fixedProfile: True ## fixed profile throughout
+sigForBadPx: 30 ## number of sigma difference from smoothed profile where to mark bad pixels
+saveRefRow: False ## save rows of reference pixels?
+numSplineKnots: 20
+traceCurvedSpectrum: true
+traceFWHMguess: 2
+traceFitBoxSize: 18
+traceOrder: 3
+backgMinRadius: 7 ## minimum distance for background
+saveSpatialProfileStats: True
+profilePix: [208,340]
+profileFitWidth: 50

@@ -27,6 +27,8 @@ defaultParamPath_tshirt_nrs_grating = pkg_resources.resource_filename('jtow',
 
 defaultParamPath_jtow_miri = pkg_resources.resource_filename('jtow',
                                                              'params/default_miri_lrs.yaml')
+defaultParamPath_tshirt_lrs = pkg_resources.resource_filename('jtow',
+                                                             'default_tshirt_miri_lrs.yaml')
 
 tshirt_baseDir = phot_pipeline.get_baseDir()
 
@@ -75,6 +77,7 @@ class wrap(object):
             miri_paramFile = self.make_jtow_miri_lrs()
             jw = jtow.jw(miri_paramFile)
             jw.run_all()
+            tshirt_param = self.make_tshirt_spec_param(detector='mirimage')
                 
         #self.run_tshirt()
 
@@ -216,6 +219,9 @@ class wrap(object):
             else:
                 specParams = jtow.read_yaml(defaultParamPath_tshirt_nrs_grating)
             instrument_abbrev = 'nrs'
+        elif (self.instrument == 'MIRI'):
+            specParams = jtow.read_yaml(defaultParamPath_tshirt_lrs)
+            instrument_abbrev = 'mir'
         else:
             raise NotImplementedError
 
@@ -253,6 +259,8 @@ class wrap(object):
                 else:
                     dispPixels = [4,2044]
             filterDescrip = '{}_{}'.format(firstHead['GRATING'],detector)
+        elif (self.instrument == 'MIRI'):
+            filterDescrip = 'lrs'
         else:
             raise NotImplementedError
         
@@ -272,7 +280,7 @@ class wrap(object):
         tshirt_specPath = os.path.join(tshirt_specDirPath,tshirt_specName)
         print("Writing spec auto parameter file to {}".format(tshirt_specPath))
         with open(tshirt_specPath,'w') as outFile:
-            yaml.dump(specParams,outFile,default_flow_style=False)
+            yaml.dump(specParams,outFile,default_flow_style=False,sort_keys=False)
         return tshirt_specPath
 
     def make_jtow_nrcalong(self):

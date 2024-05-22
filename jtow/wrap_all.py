@@ -28,7 +28,7 @@ defaultParamPath_tshirt_nrs_grating = pkg_resources.resource_filename('jtow',
 defaultParamPath_jtow_miri = pkg_resources.resource_filename('jtow',
                                                              'params/default_miri_lrs.yaml')
 defaultParamPath_tshirt_lrs = pkg_resources.resource_filename('jtow',
-                                                             'default_tshirt_miri_lrs.yaml')
+                                                             'params/default_tshirt_miri_lrs.yaml')
 
 tshirt_baseDir = phot_pipeline.get_baseDir()
 

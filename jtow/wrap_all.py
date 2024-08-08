@@ -38,7 +38,8 @@ class wrap(object):
     """
 
     def __init__(self,progID,obsNum,
-                 recenteredNIRCamGrism=False):
+                 recenteredNIRCamGrism=False,
+                 crdsContext=None):
         """
         wrapper to run everything
         recenteredNIRCam grism allows for offset position
@@ -49,6 +50,7 @@ class wrap(object):
         self.prog_dir = os.path.join(self.mast_path,"{:05d}".format(self.progID))
         self.obs_dir = os.path.join(self.prog_dir,"obsnum{:02d}".format(self.obsNum))
         self.recenteredNIRCamGrism = recenteredNIRCamGrism
+        self.crdsContext = crdsContext
 
     def run_all(self):
         self.lookup_configuration()
@@ -329,6 +331,8 @@ class wrap(object):
 
         if recenteredNIRCamGrism == True:
             jtowParams['recenteredNIRCamGrism'] = recenteredNIRCamGrism
+        
+        jtowParams= self.set_crdsContext(jtowParams)
 
         jtow_paramName = "flight_{}_{}_{}_autoparam_{:03d}.yaml".format(firstHead['VISIT_ID'],
                                                                      detName,
@@ -342,7 +346,12 @@ class wrap(object):
     def run_jtow_nrcalong(self):
         jw = jtow.jw(self.jtow_nrcalong_paramfile)
         jw.run_all()
-            
+    
+    def set_crdsContext(self,jtowParams):
+        if self.crdsContext is not None:
+            jtowParams['crdsContext'] = crdsContext
+        return crdsContext
+
     def make_jtow_nrc_SW(self): 
         jtowParams = jtow.read_yaml(defaultParamPath_jtow_nrc_SW)
         
@@ -354,6 +363,8 @@ class wrap(object):
         jtowParams['outputDir'] = procFilePath
         first_lw_uncal = np.sort(glob.glob(rawFileSearch))[0]
         
+        jtowParams= self.set_crdsContext(jtowParams)
+
         firstHead = fits.getheader(first_lw_uncal)
 
         srcFileName = firstHead['TARGPROP'].strip().replace(' ','_')

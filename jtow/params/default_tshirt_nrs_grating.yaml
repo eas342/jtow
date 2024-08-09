@@ -20,7 +20,7 @@ FITSextension: SCI
 HEADextension: 0
 isSlope: true
 readNoise: 14.0
-detectorGain: 1.8
+detectorGain: 1.0
 dateFormat: MJD 
 waveCalMethod: nrs_grating
 waveCalOffset: 0.0

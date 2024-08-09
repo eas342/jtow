@@ -255,6 +255,12 @@ class wrap(object):
             specParams['bkgRegionsY'] = bkgRegionsY
             filterDescrip = self.LWFilter
         elif (self.instrument == 'NIRSPEC'):
+            if detector == 'nrs1':
+                detectorGain = 1.420 ## NRS1 median
+            else:
+                detectorGain =  1.614 ## NRS2 median
+            
+            specParams['detectorGain'] = detectorGain
             if (firstHead['GRATING'] == 'G395H') & (firstHead['FILTER'] == 'F290LP'):
                 if detector == 'nrs1':
                     dispPixels = [550,2044]
@@ -323,7 +329,7 @@ class wrap(object):
             origFileName = firstHead['FILENAME']
             rate_file_use = os.path.join(self.obs_dir,origFileName.replace('uncal.fits','rate.fits'))
             jtowParams['ROEBAmaskfromRate'] = rate_file_use
-        
+
         if "autoParamVersion" in jtowParams:
             autoParamVersion = jtowParams["autoParamVersion"]
         else:

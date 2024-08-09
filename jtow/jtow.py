@@ -978,9 +978,14 @@ class jw(object):
         """
         if self.param['pipelinePath'] == 'MIRI-Stage1':
             assert (jwst.__version__ > "1.13")
+            if self.param['emicCor'] == True:
+                skipEmicCor = False
+            else:
+                skipEmicCor = True
+
             steps={'jump': {'rejection_threshold': self.param['jumpRejectionThreshold'], 
                             'save_results':self.param['saveJumpStep']},
-                   'emicorr':{'skip': False},
+                   'emicorr':{'skip': skipEmicCor},
                    'firstframe': {'skip': False},
                     'lastframe': {'skip': False},
                     'ramp_fit': {'maximum_cores': self.param['maxCores']}}

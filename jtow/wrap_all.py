@@ -349,7 +349,7 @@ class wrap(object):
     
     def set_crdsContext(self,jtowParams):
         if self.crdsContext is not None:
-            jtowParams['crdsContext'] = crdsContext
+            jtowParams['crdsContext'] = self.crdsContext
         return crdsContext
 
     def make_jtow_nrc_SW(self): 

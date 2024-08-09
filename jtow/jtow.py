@@ -978,7 +978,7 @@ class jw(object):
         """
         if self.param['pipelinePath'] == 'MIRI-Stage1':
             assert (jwst.__version__ > "1.13")
-            if self.param['emicCor'] == True:
+            if self.param['emicCorr'] == True:
                 skipEmicCor = False
             else:
                 skipEmicCor = True

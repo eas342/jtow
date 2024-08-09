@@ -350,7 +350,7 @@ class wrap(object):
     def set_crdsContext(self,jtowParams):
         if self.crdsContext is not None:
             jtowParams['crdsContext'] = self.crdsContext
-        return crdsContext
+        return jtowParams
 
     def make_jtow_nrc_SW(self): 
         jtowParams = jtow.read_yaml(defaultParamPath_jtow_nrc_SW)

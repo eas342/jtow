@@ -266,6 +266,14 @@ class wrap(object):
                     dispPixels = [550,2044]
                 else:
                     dispPixels = [4,2044]
+            elif (firstHead['GRATING'] == 'G395M') & (firstHead['FILTER'] == 'F290LP'):
+                if detector == 'nrs1':
+                    dispPixels = [680,2044]
+                else:
+                    dispPixels = [None,None]
+            else:
+                raise NotImplementedError("Grating and filter not implemented.")
+
             filterDescrip = '{}_{}'.format(firstHead['GRATING'],detector)
         elif (self.instrument == 'MIRI'):
             filterDescrip = 'lrs'

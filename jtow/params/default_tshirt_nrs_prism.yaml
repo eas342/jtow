@@ -1,0 +1,37 @@
+excludeList: null
+dispDirection: x
+bkgSubDirections: ['Y']
+starPositions:
+ - 16
+refPhotCentering: null
+bkgRegionsX: None
+bkgOrderX: 0
+bkgRegionsY:
+   - [0, 7]
+   - [25,32]
+bkgOrderY: 1
+backPreScreen: true
+apWidth: 14
+dispPixels: [15, 478] ## pixels to use in the dispersion direction
+jdRef: 2457551
+timingMethod: null
+isCube: false
+cubePlane: 0
+doCentering: false
+FITSextension: SCI
+HEADextension: 0
+isSlope: true
+readNoise: 14.0
+detectorGain: 1.420
+dateFormat: MJD 
+waveCalMethod: nrs_grating
+waveCalOffset: 0.0
+readNoiseCorrelation: true
+readNoiseCorrVal: 0.08
+ignorePhotNoiseInCovariance: false
+fixedProfile: true
+sigForBadPx: 120
+saveRefRow: false
+numSplineKnots: 30
+dateKeyword: BJDMID
+traceCurvedSpectrum: alse ## Fit the trace to the spectrum?

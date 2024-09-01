@@ -1,0 +1,14 @@
+add_noutputs_keyword: False
+autoROEBAmasks: True
+ROEBACorrection: GROEBA
+ROEBAK: True
+jumpRejectionThreshold: 10
+saveROEBAdiagnostics: False
+biasCycleSearch: []
+simpleSlopes: null
+maxCores: half
+ROEBAmaskfromRate: placeHolder
+ROEBAmaskfromRateThreshold: 5.0 # DN/s
+ROEBAmaskGrowthSize: 8.0
+autoParamVersion: 1
+rampFitWeighting: optimal

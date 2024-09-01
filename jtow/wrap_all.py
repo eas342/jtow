@@ -18,6 +18,11 @@ defaultParamPath_jtow_nrc_SW = pkg_resources.resource_filename('jtow',
                                                                'params/default_jtow_nrc_short.yaml')
 defaultParamPath_tshirt_spec = pkg_resources.resource_filename('jtow',
                                                                'params/default_tshirt_spec_params.yaml')
+defaultParamPath_jtow_nrs_prism = pkg_resources.resource_filename('jtow',
+                                                                  'params/default_nrs_prism.yaml')
+
+defaultParamPath_tshirt_nrs_prism = pkg_resources.resource_filename('jtow',
+                                                                  'params/default_tshirt_nrs_prism.yaml')
 
 defaultParamPath_jtow_nrs_grating = pkg_resources.resource_filename('jtow',
                                                                'params/default_nrs_grating.yaml')
@@ -65,16 +70,25 @@ class wrap(object):
             self.make_tshirt_phot_param()
         elif self.instrument == 'NIRSPEC':
             if self.grating == 'PRISM':
-                self.make_jtow_prism()
+                detectorList = ['nrs1']
             else:
-                for detector in ['nrs1','nrs2']:
+                if 'H' in self.grating:
+                    detectorList = ['nrs1','nrs2']
+                else:
+                    # M gratings are only on NRS1
+                    detectorList = ['nrs1']
+            
+            for detector in detectorList:
+                if self.grating == 'PRISM':
+                    nrs_paramFile = self.make_jtow_nrs_prism()
+                else:
                     nrs_paramFile = self.make_jtow_nrs_grating(detector=detector)
-                    jw = jtow.jw(nrs_paramFile)
-                    jw.run_all()
-                    tshirt_param =self.make_tshirt_spec_param(detector=detector)
-                    spec = spec_pipeline.spec(tshirt_param)
-                    spec.showStarChoices(showPlot=False)
-                    spec.do_extraction(useMultiprocessing=True)
+                jw = jtow.jw(nrs_paramFile)
+                jw.run_all()
+                tshirt_param =self.make_tshirt_spec_param(detector=detector)
+                spec = spec_pipeline.spec(tshirt_param)
+                spec.showStarChoices(showPlot=False)
+                spec.do_extraction(useMultiprocessing=True)
         elif self.instrument == 'MIRI':
             miri_paramFile = self.make_jtow_miri_lrs()
             jw = jtow.jw(miri_paramFile)
@@ -271,6 +285,9 @@ class wrap(object):
                     dispPixels = [680,2044]
                 else:
                     dispPixels = [None,None]
+            elif (firstHead['PRISM'] == 'PRISM'):
+                filterDescrip = 'PRISM'
+                dispPixels = specParams['dispPixels'] ## just copy the default
             else:
                 raise NotImplementedError("Grating and filter not implemented.")
 
@@ -306,6 +323,10 @@ class wrap(object):
                                              recenteredNIRCamGrism=self.recenteredNIRCamGrism)
         self.jtow_nrcalong_paramfile = jtow_paramName
 
+    def make_jtow_nrs_prism(self):
+        defaultParamPath = defaultParamPath_jtow_nrs_prism
+        return self.make_jtow_spec(defaultParamPath,detName='nrs1')
+        
     def make_jtow_nrs_grating(self,detector='nrs1'):
         defaultParamPath = defaultParamPath_jtow_nrs_grating
         return self.make_jtow_spec(defaultParamPath,detName=detector)

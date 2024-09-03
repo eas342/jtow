@@ -24,7 +24,7 @@ isSlope: true
 readNoise: 14.0
 detectorGain: 1.420
 dateFormat: MJD 
-waveCalMethod: nrs_grating
+waveCalMethod: quick_nrs_prism
 waveCalOffset: 0.0
 readNoiseCorrelation: true
 readNoiseCorrVal: 0.08

@@ -231,7 +231,7 @@ class wrap(object):
             instrument_abbrev = 'nrc'
         elif (self.instrument == 'NIRSPEC'):
             if self.grating == 'PRISM':
-                raise NotImplementedError
+                specParams = jtow.read_yaml(defaultParamPath_tshirt_nrs_prism)
             else:
                 specParams = jtow.read_yaml(defaultParamPath_tshirt_nrs_grating)
             instrument_abbrev = 'nrs'
@@ -285,7 +285,7 @@ class wrap(object):
                     dispPixels = [680,2044]
                 else:
                     dispPixels = [None,None]
-            elif (firstHead['PRISM'] == 'PRISM'):
+            elif (firstHead['GRATING'] == 'PRISM'):
                 filterDescrip = 'PRISM'
                 dispPixels = specParams['dispPixels'] ## just copy the default
             else:

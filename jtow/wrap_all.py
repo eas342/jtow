@@ -1,5 +1,6 @@
 from . import jtow
 from . import make_minisegments
+from . import auto_downloader
 import os
 import glob
 import yaml
@@ -58,6 +59,7 @@ class wrap(object):
         self.crdsContext = crdsContext
 
     def run_all(self):
+        self.download()
         self.lookup_configuration()
         self.organize_files()
         self.make_miniseg()
@@ -96,6 +98,10 @@ class wrap(object):
             tshirt_param = self.make_tshirt_spec_param(detector='mirimage')
                 
         #self.run_tshirt()
+
+    def download(self,downloadAll=True):
+        auto_downloader.do_download(self.progID,self.obsNum,
+                                    downloadAll=downloadAll)
 
     def lookup_configuration(self):
         all_files = np.sort(glob.glob(os.path.join(self.obs_dir,'*.fits')))

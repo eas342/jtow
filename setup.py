@@ -12,6 +12,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = ["tshirt >= 0.3.1",
                 "jwst",
+                "astroquery",
                 "splintegrate",
                 "scikit-learn"]
 

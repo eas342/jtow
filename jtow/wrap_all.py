@@ -67,9 +67,12 @@ class wrap(object):
             self.make_jtow_nrcalong()
             self.make_jtow_nrc_SW()
             self.run_jtow_nrcalong()
-            self.make_tshirt_spec_param()
+            tshirt_spec_param = self.make_tshirt_spec_param()
             self.run_jtow_nrc_SW()
-            self.make_tshirt_phot_param()
+            tshirt_phot_param = self.make_tshirt_phot_param()
+            self.run_tshirt(tshirt_spec_param,pipeType='spec')
+            self.run_tshirt(tshirt_phot_param,pipeType='phot')
+
         elif self.instrument == 'NIRSPEC':
             if self.grating == 'PRISM':
                 detectorList = ['nrs1']
@@ -88,16 +91,27 @@ class wrap(object):
                 jw = jtow.jw(nrs_paramFile)
                 jw.run_all()
                 tshirt_param =self.make_tshirt_spec_param(detector=detector)
-                spec = spec_pipeline.spec(tshirt_param)
-                spec.showStarChoices(showPlot=False)
-                spec.do_extraction(useMultiprocessing=True)
+                self.run_tshirt(tshirt_param,pipeType='spec')
         elif self.instrument == 'MIRI':
             miri_paramFile = self.make_jtow_miri_lrs()
             jw = jtow.jw(miri_paramFile)
             jw.run_all()
             tshirt_param = self.make_tshirt_spec_param(detector='mirimage')
-                
+            self.run_tshirt(tshirt_param,pipeType='spec')
+
         #self.run_tshirt()
+    def run_tshirt(self,tshirt_param,pipeType='spec'):
+        """
+        Runs standard tshirt extraction code
+        """
+        if pipeType == 'spec':
+            spec = spec_pipeline.spec(tshirt_param)
+            spec.showStarChoices(showPlot=False)
+            spec.do_extraction(useMultiprocessing=True)
+        else:
+            phot = phot_pipeline.phot(tshirt_param)
+            phot.showStarChoices(showAps=True,apColor='red',backColor='cyan')
+            phot.do_phot(useMultiprocessing=True)
 
     def download(self,downloadAll=True):
         auto_downloader.do_download(self.progID,self.obsNum,
@@ -230,6 +244,7 @@ class wrap(object):
         print("Writing photom auto parameter file to {}".format(tshirt_photPath))
         with open(tshirt_photPath,'w') as outFile:
             yaml.dump(photParams,outFile,default_flow_style=False)
+        return tshirt_photPath
 
     def make_tshirt_spec_param(self,detector='nrcalong'): 
         if (self.instrument == 'NIRCAM'):

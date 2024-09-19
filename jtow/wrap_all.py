@@ -262,6 +262,9 @@ class wrap(object):
         else:
             raise NotImplementedError
 
+        if 'tshAutoVersion' not in specParams:
+            specParams['tshAutoVersion'] = 1
+
         spec_uncal_dir = os.path.join(self.obs_dir,'{}_uncal_fits'.format(detector))
         uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
         first_lw_uncal = np.sort(glob.glob(uncal_search))[0]
@@ -330,8 +333,9 @@ class wrap(object):
         if os.path.exists(tshirt_specDirPath) == False:
             os.makedirs(tshirt_specDirPath)
         
-        tshirt_specName = "spec_{}_{}_autoparam_001.yaml".format(instrument_abbrev,
-                                                                 specParams['nightName'])
+        tshirt_specName = "spec_{}_{}_autoparam_{:03d}.yaml".format(instrument_abbrev,
+                                                                 specParams['nightName'],
+                                                                 specParams['tshAutoVersion'])
         tshirt_specPath = os.path.join(tshirt_specDirPath,tshirt_specName)
         print("Writing spec auto parameter file to {}".format(tshirt_specPath))
         with open(tshirt_specPath,'w') as outFile:

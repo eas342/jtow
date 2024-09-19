@@ -30,8 +30,9 @@ readNoiseCorrelation: true
 readNoiseCorrVal: 0.08
 ignorePhotNoiseInCovariance: false
 fixedProfile: true
-sigForBadPx: 120
+sigForBadPx: 50
 saveRefRow: false
 numSplineKnots: 30
 dateKeyword: BJDMID
 traceCurvedSpectrum: alse ## Fit the trace to the spectrum?
+tshAutoVersion: 2

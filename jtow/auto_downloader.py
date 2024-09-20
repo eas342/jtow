@@ -14,7 +14,22 @@ def get_by_obsnum(obsList,obsNumString):
     pts_use = obsList['obsnum'] == obsNumString
     return pts_use
 
-def do_download(propID=1185,obsNum=103,downloadAll=True):
+def do_download(propID=1185,obsNum=103,downloadAll=True,
+                products=['RATE','UNCAL']):
+    """
+    Automatically download products from propID and obsNum
+
+    Parameters
+    ----------
+    propID: int
+        Proposal ID
+    obsNum: int
+        Observation number
+    downloadAll: bool
+        Download all files? Otherwise, uses a subset for testing
+    """
+
+
     my_session = Observations.login(token=os.environ['MAST_API_TOKEN'])
     obsNumString02 = "{:02d}".format(obsNum) ## for legacy directory organization
     obsNumString03 = "{:03d}".format(obsNum)
@@ -43,19 +58,18 @@ def do_download(propID=1185,obsNum=103,downloadAll=True):
     data_products = Observations.get_product_list(observation)
 
     # Filter them to get ramps and rateints; only for the fourth segment of data:
-    rates = Observations.filter_products(data_products, productType = 'SCIENCE', productSubGroupDescription = 'RATE')
-    uncal = Observations.filter_products(data_products, productType = 'SCIENCE', productSubGroupDescription = 'UNCAL')
-
-    pts_use_rate = get_by_obsnum(rates,obsNumString03)
-    pts_use_uncal = get_by_obsnum(uncal,obsNumString03)
-
-    downloadRes = Observations.download_products(rates[pts_use_rate],flat=True,download_dir=outPath)
-    
+    downloadResList = []
     if downloadAll == True:
-        uncal_to_download = uncal[pts_use_uncal]
+        download_products = products
     else:
-        ## for testing, only download first uncal (probly a TA image)
-        uncal_to_download = uncal[pts_use_uncal][0]
-    downloadRes2 = Observations.download_products(uncal_to_download,flat=True,download_dir=outPath)
+        download_products = [products[0]]
+    
+    for oneProduct in download_products:
+        files = Observations.filter_products(data_products, productType = 'SCIENCE', 
+                                             productSubGroupDescription = oneProduct)
+        pts_use = get_by_obsnum(files,obsNumString03)
+        downloadRes = Observations.download_products(files[pts_use],flat=True,
+                                                     download_dir=outPath)
+        downloadResList.append(downloadRes)
 
-    return [downloadRes,downloadRes2]
+    return downloadResList

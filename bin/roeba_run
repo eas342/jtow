@@ -16,8 +16,8 @@ parser.add_argument('--skipExisting', metavar='S', type=bool, default=False,
 
 args = parser.parse_args()
 
-
-auto_jtow.run_auto_jtow(searchString=args.inFile,iterations=args.iterations,
-                        skipExisting=args.skipExisting)
+if __name__ == "__main__":
+    auto_jtow.run_auto_jtow(searchString=args.inFile,iterations=args.iterations,
+                            skipExisting=args.skipExisting)
 #
 # pdb.set_trace()

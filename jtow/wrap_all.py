@@ -114,8 +114,11 @@ class wrap(object):
             phot.do_phot(useMultiprocessing=True)
 
     def download(self,downloadAll=True):
-        auto_downloader.do_download(self.progID,self.obsNum,
-                                    downloadAll=downloadAll)
+        res = auto_downloader.do_download(self.progID,self.obsNum,
+                                          downloadAll=downloadAll)
+        for oneRes in res:
+            print(oneRes[0]['Message'])
+        
 
     def lookup_configuration(self):
         all_files = np.sort(glob.glob(os.path.join(self.obs_dir,'*.fits')))

@@ -23,6 +23,28 @@ you through the process.
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
 
+Recommended Environmental Variables
+-----------------------------------
+It is recommended to set the environmental variables to that files are stored where expected.
+For example, suppose /big_disk is a large storage location.
+
+.. code-block:: bash
+
+    export CRDS_PATH=/big_disk/crds_cache
+    export CRDS_SERVER_URL=https://jwst-crds.stsci.edu
+    export TSHIRT_DATA=/big_disk/tshirt_data
+    export JWSTDOWNLOAD_OUTDIR=/big_disk/jwst_flight_data
+    export MAST_API_TOKEN="blahblahblah"
+
+:code:`CRDS_PATH` will store JWST reference data
+
+:code:`TSHIRT_DAT` will store photometric/spectroscopic extractions and time series
+
+:code:`JWSTDOWNLOAD_OUTDIR` will store downloaded JWST data
+
+:code:`MAST_API_TOKEN` is the API token to access data on MAST.
+
+
 From sources
 ------------
 

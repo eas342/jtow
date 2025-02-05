@@ -58,6 +58,10 @@ If :code:`colByCol` is True, ROEBA will use the median of each column to estimat
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 :code:`jumpRejectionThreshold` sets the sigma rejection threshold for the JWST jump step to detect cosmic rays
 
+:code:`customROEBAmask`
+~~~~~~~~~~~~~~~~~~~~~~~
+Set :code:`customROEBAmask` to a custom FITS file that describes a mask for the ROEBA algorithm. The mask should be the same size as the science data. The pixels that have a value of 1 will be used for 1/f corrections. The values of 0 will be ignored.
+
 :code:`ROEBAmaskGrowthSize`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 :code:`ROEBAmaskGrowthSize` sets the size (in pixels) of how large a smoothing kernel should be used to grow the ROEBA mask.

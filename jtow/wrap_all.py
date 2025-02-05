@@ -227,7 +227,7 @@ class wrap(object):
         photParams['refStarPos'] = [starPos]
         if self.SWPupil == 'WLP8':
             apertures = [79,79,100]
-        elif self.SWPupil == 'WLP4':
+        elif (self.SWPupil == 'WLP4') | (self.SWFilter == 'WLP4'):
             apertures = [31.5,32,60]
         else:
             raise NotImplementedError

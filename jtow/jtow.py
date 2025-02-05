@@ -247,7 +247,13 @@ class jw(object):
         Make masks for Row-by-row, odd-even by amplifier correction (ROEBA)
         
         """
-        if self.param['autoROEBAmasks'] == True:
+        if ((self.param['customROEBAmask'] is not None) &
+            (self.param['customROEBAmask'] != False)):
+            custMask = fits.getdata(self.param['customROEBAmask'])
+            ROEBAmask = np.array(custMask,dtype=bool)
+            self.bad_dq_mask = np.zeros_like(ROEBAmask,dtype=bool)
+            self.photParam = None
+        elif self.param['autoROEBAmasks'] == True:
             firstHead = fits.getheader(self.all_uncal_files[0])
             if self.param['forceHeaderChange'] is None:
                 pass
@@ -342,6 +348,7 @@ class jw(object):
                 self.bad_dq_mask = np.zeros_like(ROEBAmask,dtype=bool)
             else:
                 raise Exception("Unrecognized header metadata to create an automatic ROEBA mask")
+
         else:
             self.photParam = None
             ROEBAmask = None

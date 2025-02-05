@@ -8,6 +8,7 @@ ROEBAK: False
 colByCol: False
 autoROEBAmasks: True
 maxCores: quarter
+customROEBAmask: null
 ROEBAmaskfromRate: null
 ROEBAmaskfromRateThreshold: 0.5 # DN/s
 ROEBAbadRowsAllowed: 11

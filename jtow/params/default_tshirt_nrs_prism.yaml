@@ -34,5 +34,5 @@ sigForBadPx: 50
 saveRefRow: false
 numSplineKnots: 30
 dateKeyword: BJDMID
-traceCurvedSpectrum: alse ## Fit the trace to the spectrum?
+traceCurvedSpectrum: False ## Fit the trace to the spectrum?
 tshAutoVersion: 2

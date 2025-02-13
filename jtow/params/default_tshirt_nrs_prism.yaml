@@ -35,4 +35,5 @@ saveRefRow: false
 numSplineKnots: 30
 dateKeyword: BJDMID
 traceCurvedSpectrum: False ## Fit the trace to the spectrum?
-tshAutoVersion: 2
+saveSpatialProfileStats: True ## save the spatial profile stats
+tshAutoVersion: 3

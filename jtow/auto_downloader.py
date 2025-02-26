@@ -29,8 +29,8 @@ def do_download(propID=1185,obsNum=103,downloadAll=True,
                         downloadAll=downloadAll,
                         products=products)
             attempt = max_attempts + 1
-        except http.client.IncompleteRead:
-            print("incomplete read found. Trying again")
+        except:
+            print("Download failed. Trying again")
             attempt = attempt + 1
 
 

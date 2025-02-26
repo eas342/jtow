@@ -2,6 +2,7 @@
 # coding: utf-8
 
 from astroquery.mast import Observations
+import http
 import os
 
 def get_by_obsnum(obsList,obsNumString):
@@ -15,9 +16,30 @@ def get_by_obsnum(obsList,obsNumString):
     return pts_use
 
 def do_download(propID=1185,obsNum=103,downloadAll=True,
+                products=['RATE','UNCAL'],
+                max_attempts=5):
+    """
+    Repeat the download process a few times in case of connection errors
+    """
+    attempt = 1
+    while attempt <= max_attempts:
+        try:
+            do_download1(propID=propID,
+                        obsNum=obsNum,
+                        downloadAll=downloadAll,
+                        products=products)
+            attempt = max_attempts + 1
+        except http.client.IncompleteRead:
+            print("incomplete read found. Trying again")
+            attempt = attempt + 1
+
+
+
+
+def do_download1(propID=1185,obsNum=103,downloadAll=True,
                 products=['RATE','UNCAL']):
     """
-    Automatically download products from propID and obsNum
+    Automatically download products from propID and obsNum (1 attempt)
 
     Parameters
     ----------

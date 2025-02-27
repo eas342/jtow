@@ -30,9 +30,11 @@ def do_download(propID=1185,obsNum=103,downloadAll=True,
                                products=products)
             attempt = max_attempts + 1
         except:
-            print("Download failed. Trying again")
+            print("Download failed.")
             attempt = attempt + 1
             res = []
+            if attempt <= max_attempts:
+                print("Trying again")
     return res
 
 

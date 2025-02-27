@@ -24,15 +24,16 @@ def do_download(propID=1185,obsNum=103,downloadAll=True,
     attempt = 1
     while attempt <= max_attempts:
         try:
-            do_download1(propID=propID,
-                        obsNum=obsNum,
-                        downloadAll=downloadAll,
-                        products=products)
+            res = do_download1(propID=propID,
+                               obsNum=obsNum,
+                               downloadAll=downloadAll,
+                               products=products)
             attempt = max_attempts + 1
         except:
             print("Download failed. Trying again")
             attempt = attempt + 1
-
+            res = []
+    return res
 
 
 

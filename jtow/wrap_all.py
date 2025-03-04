@@ -118,7 +118,7 @@ class wrap(object):
         else:
             phot = phot_pipeline.phot(tshirt_param)
             phot.showStarChoices(showAps=True,apColor='red',backColor='cyan')
-            if spec.nImg < maxCPUs:
+            if phot.nImg < maxCPUs:
                 useMultiprocessing=False
             else:
                 useMultiprocessing=True

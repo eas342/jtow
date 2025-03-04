@@ -178,4 +178,8 @@ class wlcubeMake(object):
 
 def make_WL_cube(fileSearch=defFileSearch):
     wlCubeObj = wlcubeMake(fileSearch=fileSearch)
-    wlCubeObj.run_all()
+    nImg = wlCubeObj.nImg
+    if nImg < 7:
+        print("Only {} images, not doing WL Cube".format(nImg))
+    else:
+        wlCubeObj.run_all()

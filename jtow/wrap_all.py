@@ -10,6 +10,7 @@ from astropy.io import fits, ascii
 import pdb
 from tshirt.pipeline import phot_pipeline, spec_pipeline
 import pkg_resources
+import multiprocessing
 
 path_to_defaults_tshirt_phot = "params/default_tshirt_phot_params.yaml"
 defaultParamPath_tshirt_phot = pkg_resources.resource_filename('jtow',path_to_defaults_tshirt_phot)
@@ -104,14 +105,24 @@ class wrap(object):
         """
         Runs standard tshirt extraction code
         """
+        maxCPUs = multiprocessing.cpu_count() // 3
+        
         if pipeType == 'spec':
             spec = spec_pipeline.spec(tshirt_param)
             spec.showStarChoices(showPlot=False)
-            spec.do_extraction(useMultiprocessing=True)
+            if spec.nImg < maxCPUs:
+                useMultiprocessing=False
+            else:
+                useMultiprocessing=True
+            spec.do_extraction(useMultiprocessing=useMultiprocessing)
         else:
             phot = phot_pipeline.phot(tshirt_param)
             phot.showStarChoices(showAps=True,apColor='red',backColor='cyan')
-            phot.do_phot(useMultiprocessing=True)
+            if spec.nImg < maxCPUs:
+                useMultiprocessing=False
+            else:
+                useMultiprocessing=True
+            phot.do_phot(useMultiprocessing=useMultiprocessing)
 
     def download(self,downloadAll=True):
         res = auto_downloader.do_download(self.progID,self.obsNum,

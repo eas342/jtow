@@ -18,7 +18,8 @@ def get_by_obsnum(obsList,obsNumString):
     return pts_use
 
 def do_download(propID=1185,obsNum=103,downloadAll=True,
-                products=['RATE','UNCAL'],
+                products=['_rate','_uncal'],
+                cache=True,
                 max_attempts=5):
     """
     Repeat the download process a few times in case of connection errors
@@ -29,7 +30,8 @@ def do_download(propID=1185,obsNum=103,downloadAll=True,
             res = do_download1(propID=propID,
                                obsNum=obsNum,
                                downloadAll=downloadAll,
-                               products=products)
+                               products=products,
+                               cache=cache)
             attempt = max_attempts + 1
         except:
             print("Download failed.")

@@ -2,8 +2,10 @@
 # coding: utf-8
 
 from astroquery.mast import Observations
+from astroquery.mast.missions import MastMissions
 import http
 import os
+import pdb
 
 def get_by_obsnum(obsList,obsNumString):
     obsnumList = []
@@ -40,7 +42,7 @@ def do_download(propID=1185,obsNum=103,downloadAll=True,
 
 
 def do_download1(propID=1185,obsNum=103,downloadAll=True,
-                products=['RATE','UNCAL']):
+                products=['_rate','_uncal'],cache=True):
     """
     Automatically download products from propID and obsNum (1 attempt)
 
@@ -54,8 +56,9 @@ def do_download1(propID=1185,obsNum=103,downloadAll=True,
         Download all files? Otherwise, uses a subset for testing
     """
 
-
-    my_session = Observations.login(token=os.environ['MAST_API_TOKEN'])
+    missions = MastMissions(mission='jwst')
+    missions.login(token=os.environ['MAST_API_TOKEN'])
+    
     obsNumString02 = "{:02d}".format(obsNum) ## for legacy directory organization
     obsNumString03 = "{:03d}".format(obsNum)
     propIDString = "{:05d}".format(propID)
@@ -79,8 +82,9 @@ def do_download1(propID=1185,obsNum=103,downloadAll=True,
     # print(results)
 
 
-    observation = Observations.query_criteria(proposal_id = propIDString)
-    data_products = Observations.get_product_list(observation)
+    
+    observation = missions.query_criteria(program=propID,observtn=obsNum)
+    data_products = missions.get_product_list(observation)
 
     # Filter them to get ramps and rateints; only for the fourth segment of data:
     downloadResList = []
@@ -90,11 +94,12 @@ def do_download1(propID=1185,obsNum=103,downloadAll=True,
         download_products = [products[0]]
     
     for oneProduct in download_products:
-        files = Observations.filter_products(data_products, productType = 'SCIENCE', 
-                                             productSubGroupDescription = oneProduct)
-        pts_use = get_by_obsnum(files,obsNumString03)
-        downloadRes = Observations.download_products(files[pts_use],flat=True,
-                                                     download_dir=outPath)
+        files = missions.filter_products(data_products, type = 'science', 
+                                             file_suffix = oneProduct)
+        #pts_use = get_by_obsnum(files,obsNumString03)
+        downloadRes = missions.download_products(files,flat=True,
+                                                 download_dir=outPath,
+                                                 cache=cache)
         downloadResList.append(downloadRes)
 
     return downloadResList

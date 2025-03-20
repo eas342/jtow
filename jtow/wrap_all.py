@@ -1,6 +1,7 @@
 from . import jtow
 from . import make_minisegments
 from . import auto_downloader
+from . import make_cust_groupdq
 import os
 import glob
 import yaml
@@ -397,6 +398,12 @@ class wrap(object):
             origFileName = firstHead['FILENAME']
             rate_file_use = os.path.join(self.obs_dir,origFileName.replace('uncal.fits','rate.fits'))
             jtowParams['ROEBAmaskfromRate'] = rate_file_use
+
+            if self.grating == 'PRISM':
+                ## handle partial saturation with custom groupdq
+                gdq = make_cust_groupdq.custGroupDQ(rate_file_use)
+                gdq.calc_satpoints()
+                jtowParams['custGroupDQfile'] = gdq.outName
 
         if "autoParamVersion" in jtowParams:
             autoParamVersion = jtowParams["autoParamVersion"]

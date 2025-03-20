@@ -128,3 +128,7 @@ Skip the jump detection step? Passed to the jump detection skip parameter. If Tr
 :code:`emicorr`
 ~~~~~~~~~~~~~~~~~~~~~~
 If True, run the STSCi pipeline's emicorr step for 390Hz and other noise corrections. 
+
+:code:`autoParamVersion`
+~~~~~~~~~~~~~~~~~~~~~~~~
+Not used to change the results, but helps keep track of automatic parameter generation with `wrap_all`

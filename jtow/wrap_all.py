@@ -13,14 +13,14 @@ from tshirt.pipeline import phot_pipeline, spec_pipeline
 import pkg_resources
 import multiprocessing
 
-path_to_defaults_tshirt_phot = "params/default_tshirt_phot_params.yaml"
-defaultParamPath_tshirt_phot = pkg_resources.resource_filename('jtow',path_to_defaults_tshirt_phot)
+path_to_defaults_tshirt_nrc_phot = "params/default_tshirt_nrc_phot_params.yaml"
+defaultParamPath_tshirt_nrc_phot = pkg_resources.resource_filename('jtow',path_to_defaults_tshirt_nrc_phot)
 defaultParamPath_jtow_nrcalong = pkg_resources.resource_filename('jtow',
                                                                  'params/default_jtow_nrcalong.yaml')
 defaultParamPath_jtow_nrc_SW = pkg_resources.resource_filename('jtow',
                                                                'params/default_jtow_nrc_short.yaml')
-defaultParamPath_tshirt_spec = pkg_resources.resource_filename('jtow',
-                                                               'params/default_tshirt_spec_params.yaml')
+defaultParamPath_tshirt_nrc_spec = pkg_resources.resource_filename('jtow',
+                                                               'params/default_tshirt_nrc_spec_params.yaml')
 defaultParamPath_jtow_nrs_prism = pkg_resources.resource_filename('jtow',
                                                                   'params/default_nrs_prism.yaml')
 
@@ -221,7 +221,7 @@ class wrap(object):
     
         
     def make_tshirt_phot_param(self): 
-        photParams = jtow.read_yaml(defaultParamPath_tshirt_phot)
+        photParams = jtow.read_yaml(defaultParamPath_tshirt_nrc_phot)
         
         first_sw_uncal = np.sort(glob.glob(self.SWdetSearchPath))[0]
         firstHead = fits.getheader(first_sw_uncal)
@@ -263,7 +263,7 @@ class wrap(object):
 
     def make_tshirt_spec_param(self,detector='nrcalong'): 
         if (self.instrument == 'NIRCAM'):
-            specParams = jtow.read_yaml(defaultParamPath_tshirt_spec)
+            specParams = jtow.read_yaml(defaultParamPath_tshirt_nrc_spec)
             instrument_abbrev = 'nrc'
         elif (self.instrument == 'NIRSPEC'):
             if self.grating == 'PRISM':
@@ -295,11 +295,13 @@ class wrap(object):
         if (self.instrument == 'NIRCAM'):
             if self.LWFilter == 'F444W':
                 starPos = 31
-                bkgRegionsY = [[5,21],[41,64]]
+                #bkgRegionsY = [[5,21],[41,64]]
+                bkgRegionsY = [[5,64]]
                 dispPixels = [750,2040]
             elif self.LWFilter == 'F322W2':
                 starPos = 34
-                bkgRegionsY = [[5,24],[44,65]]
+                #bkgRegionsY = [[5,24],[44,65]]
+                bkgRegionsY = [[5,64]]
                 dispPixels = [4,1747]
             else:
                 raise NotImplementedError

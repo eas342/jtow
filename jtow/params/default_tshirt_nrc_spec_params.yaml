@@ -38,3 +38,8 @@ fixedProfile: True ## fixed profile throughout
 sigForBadPx: 30 ## number of sigma difference from smoothed profile where to mark bad pixels
 saveRefRow: False ## save rows of reference pixels?
 numSplineKnots: 40
+tshAutoVersion: 2
+traceCurvedSpectrum: true
+traceFWHMguess: 2
+traceFitBoxSize: 18
+traceOrder: 3

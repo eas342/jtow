@@ -138,7 +138,7 @@ class wrap(object):
         self.instrument = oneHead['INSTRUME']
         if self.instrument == 'NIRSPEC':
             self.grating = oneHead['GRATING']
-        
+        self.template = oneHead['TEMPLATE']
         
     def organize_files(self):
         if self.instrument == 'NIRCAM':
@@ -170,23 +170,28 @@ class wrap(object):
             
     def make_miniseg(self,reDo=False):
         if self.instrument == 'NIRCAM':
-            spec_uncal_dir = os.path.join(self.obs_dir,'nrcalong_uncal_fits')
-            uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
-            self.LWdetSearchPath = uncal_search
-            make_minisegments.loop_minisegments(uncal_search,reDo=reDo)
-            first_uncal = np.sort(glob.glob(uncal_search))[0]
-            firstHead = fits.getheader(first_uncal)
-            self.LWFilter = firstHead['FILTER']
-            self.LWPupil = firstHead['PUPIL']
-            if firstHead['FILTER'] == 'F444W':
-                self.SWdetSearch = 'nrca1_uncal_fits'
+            if self.template == 'NIRCam Time Series':
+                for uncal_dir1 in ['nrcblong_uncal_fits','nrcb1_uncal_fits']:
+                    uncal_search1 = os.path.join(self.obs_dir,uncal_dir1,'*uncal.fits')
+                    make_minisegments.loop_minisegments(uncal_search1,reDo=reDo)
             else:
-                self.SWdetSearch = 'nrca3_uncal_fits'
-            
-            self.SWprocDir = self.SWdetSearch.replace('uncal_fits','proc')
+                spec_uncal_dir = os.path.join(self.obs_dir,'nrcalong_uncal_fits')
+                uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')
+                self.LWdetSearchPath = uncal_search
+                make_minisegments.loop_minisegments(uncal_search,reDo=reDo)
+                first_uncal = np.sort(glob.glob(uncal_search))[0]
+                firstHead = fits.getheader(first_uncal)
+                self.LWFilter = firstHead['FILTER']
+                self.LWPupil = firstHead['PUPIL']
+                if firstHead['FILTER'] == 'F444W':
+                    self.SWdetSearch = 'nrca1_uncal_fits'
+                else:
+                    self.SWdetSearch = 'nrca3_uncal_fits'
                 
-            self.SWdetSearchPath = os.path.join(self.obs_dir,self.SWdetSearch,'*uncal.fits')
-            make_minisegments.loop_minisegments(self.SWdetSearchPath,reDo=reDo)
+                self.SWprocDir = self.SWdetSearch.replace('uncal_fits','proc')
+                    
+                self.SWdetSearchPath = os.path.join(self.obs_dir,self.SWdetSearch,'*uncal.fits')
+                make_minisegments.loop_minisegments(self.SWdetSearchPath,reDo=reDo)
         elif self.instrument == 'NIRSPEC':
             spec_uncal_dir = os.path.join(self.obs_dir,'nrs1_uncal_fits')
             uncal_search = os.path.join(spec_uncal_dir,'*uncal.fits')

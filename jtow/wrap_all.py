@@ -289,7 +289,8 @@ class wrap(object):
                                                'split_output',
                                                'ff_cleaned','*.fits')
         specParams['srcName'] = firstHead['TARGPROP']
-        specParams['srcNameShort'] = "auto_params_001"
+        srcNameShort = "auto_params_{:03d}".format(specParams['tshAutoVersion'])
+        specParams['srcNameShort'] = srcNameShort
         srcFileName = specParams['srcName'].strip().replace(' ','_')
         
         if (self.instrument == 'NIRCAM'):

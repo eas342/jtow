@@ -1,0 +1,14 @@
+add_noutputs_keyword: False
+autoROEBAmasks: True
+ROEBACorrection: true
+ROEBAK: True
+jumpRejectionThreshold: 10
+saveROEBAdiagnostics: False
+biasCycleSearch: []
+simpleSlopes: null
+maxCores: half
+ROEBAmaskfromRate: placeHolder
+ROEBAmaskfromRateThreshold: 100. # DN/s, for short ~0.2s frame times
+ROEBAmaskGrowthSize: 5
+autoParamVersion: 1
+rampFitWeighting: optimal

@@ -696,7 +696,7 @@ class jw(object):
             #nints = superbias.meta.exposure.nints (done above)
             tarr = np.arange(ngroups) * group_time + (nframes) * 0.5 * frame_time
             #nY, nX = superbias.data.shape done above
-            tarr_3D = np.tile(tarr,[ny,nx,1]).T
+            tarr_3D = np.tile(tarr,[ny,nx,1]).transpose(2,0,1)
             backg3D = np.tile(self.backgRate,[ngroups,1,1]) * tarr_3D
             backg4D = np.tile(backg3D,[nints,1,1,1])
 

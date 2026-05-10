@@ -618,7 +618,32 @@ class jw(object):
             HDUList_result.writeto(outPath_result,overwrite=True)
             
             del HDUList_result
+    
+    def custom_DQmasking(self,dq_init):
+        """
+        Mask out bad pixels that were specified manually
         
+        Parameters
+        ----------
+        dq_init: data model from DQInitStep
+            The result of the DQ initialization step to modify with custom masking
+        """
+        
+        if hasattr(dq_init,'groupdq') == None:
+            print('No groupdq attribute found')
+            return dq_init
+        elif self.param['custBadPixels'] is None:
+            return dq_init
+        else:
+            custBadPixels = self.param['custBadPixels']
+            newDQ = deepcopy(dq_init.groupdq)
+             # Set the first bit (DO NOT USE) to 1 for bad pixels
+            for x, y in custBadPixels:
+                newDQ[:,:,y,x] = newDQ[:,:,y,x] | 1
+            dq_init.groupdq = newDQ
+            
+            return dq_init
+
     def should_i_try_roeba(self):
         """
         check values of of ROEBACorrection parameter
@@ -1014,13 +1039,15 @@ class jw(object):
         dq_init_step = DQInitStep()
         dq_init = dq_init_step.run(uncal_file)
         
+        dq_init2 = self.custom_DQmasking(dq_init)
+        
         
         # ## Saturation Flagging
         # Using the run() method
         saturation_step = SaturationStep()
         # Call using the the output from the previously-run dq_init step
-        saturation = saturation_step.run(dq_init)
-        self.delete_object(dq_init) ## try to save memory
+        saturation = saturation_step.run(dq_init2)
+        self.delete_object(dq_init2) ## try to save memory
 
         # Using the run() method
         superbias_step = SuperBiasStep()

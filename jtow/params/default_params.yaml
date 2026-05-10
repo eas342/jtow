@@ -37,3 +37,4 @@ crdsContext: null
 pipelinePath: 'step-by-step'
 emicCorr: True
 autoParamVersion: null
+custBadPixels: null

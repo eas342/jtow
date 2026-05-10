@@ -23,6 +23,10 @@ What kind of use of the :code:`jwst` pipeline will it go through? Usually it is 
 * :code:`cycleBias`: it will cycle through biases in a pattern defined by biasCycle
 * :code:`lineIntercept`: it will fit a line to the integration and use the intercept as the bias frame
 
+:code:`custBadPixels`
+~~~~~~~~~~~~~~~~~~~~
+:code:`custBadPixels` is a list of pixels in the format [[X1,Y1],[X2,Y2],...] to mask force into a do-not-use DQ after the DQ initialization step. This is useful for masking out bad pixels that are not already in the DQ array.
+
 :code:`biasCycle`
 ~~~~~~~~~~~~~~~~~
 Controls how the bias is subtracted in the case that :code:`custBias` is equal to :code:`cycleBias`

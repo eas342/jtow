@@ -51,6 +51,15 @@ def clean_data(searchPath,savePath,thresholdSize=20,
         clean_from_fileList(chunk,savePath=savePath,thresholdSize=thresholdSize)
     
 
+def make_noiseCube(searchPath,savePath='noise_cube'):
+    """
+    Make a noise cube from a search path of images
+    """
+    fileList = np.sort(glob.glob(searchPath))
+    clean_from_fileList(fileList,savePath=savePath,
+                        saveCleaned=False,saveNoiseMap=True,
+                        noiseMapPath=savePath)
+
 def get_imgCube_from_search(searchPath):
     """
     Get a cube from a search of images
@@ -80,7 +89,10 @@ def get_imgCube(fileList):
 
 
 def clean_from_fileList(fileList,savePath,
-                        thresholdSize = 20):
+                        thresholdSize = 20,
+                        saveNoiseMap=False,
+                        noiseMapPath=None,
+                        saveCleaned=True):
     """
     Clean a file list of images using a temporal rejection and 
     linear interpolation replacement scheme along the temporal axis
@@ -93,6 +105,12 @@ def clean_from_fileList(fileList,savePath,
         A directory where to save files
     thresholdSize: float
         The rejection threshold in the temporal direction (sigma)
+    saveNoiseMap: bool
+        Whether to save the noise map
+    noiseMapPath: str
+        The path where to save the noise map
+    saveCleaned: bool
+        Whether to save the cleaned files. For diagnostic purposes.
     """
     
     res = get_imgCube(fileList=fileList)
@@ -117,6 +135,14 @@ def clean_from_fileList(fileList,savePath,
     
     outY, outX = np.where(outlierMap > 0)
     
+    if saveNoiseMap == True:
+        stdev = np.nanstd(imgCube,axis=0) / oneErr
+        if os.path.exists(noiseMapPath) == False:
+            os.makedirs(noiseMapPath)
+        outName = "noise_map.fits"
+        outPath = os.path.join(noiseMapPath,outName)
+        fits.writeto(outPath,stdev,overwrite=True)
+
     ## make a cleaned cube with interpolation
     cleanedCube = deepcopy(imgCube)
     
@@ -140,16 +166,17 @@ def clean_from_fileList(fileList,savePath,
     if os.path.exists(savePath) == False:
         os.makedirs(savePath)
     
-    for ind,oneFile in enumerate(fileList):
-        baseName = os.path.splitext(os.path.basename(oneFile))[0]
-        outName = "{}_cln.fits".format(baseName)
-        outPath = os.path.join(savePath,outName)
-        HDUList = fits.open(oneFile)
-        HDUList[0].header['TCLEANED'] = (True, 'Is the data temporally cleaned')
-        HDUList[0].header['CLTHRESH'] = (thresholdSize, 'Temporal Cleaning threshold (sigma)')
-        HDUList['SCI'].data = cleanedCube[ind]
-        HDUList.writeto(outPath,overwrite=True)
-        HDUList.close()
+    if saveCleaned == True:
+        for ind,oneFile in enumerate(fileList):
+            baseName = os.path.splitext(os.path.basename(oneFile))[0]
+            outName = "{}_cln.fits".format(baseName)
+            outPath = os.path.join(savePath,outName)
+            HDUList = fits.open(oneFile)
+            HDUList[0].header['TCLEANED'] = (True, 'Is the data temporally cleaned')
+            HDUList[0].header['CLTHRESH'] = (thresholdSize, 'Temporal Cleaning threshold (sigma)')
+            HDUList['SCI'].data = cleanedCube[ind]
+            HDUList.writeto(outPath,overwrite=True)
+            HDUList.close()
     
     # In[16]:
 

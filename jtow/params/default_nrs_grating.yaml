@@ -11,5 +11,5 @@ maxCores: half
 ROEBAmaskfromRate: placeHolder
 ROEBAmaskfromRateThreshold: 1.5 # DN/s
 ROEBAmaskGrowthSize: 2.0
-autoParamVersion: 2
+autoParamVersion: 3
 rampFitWeighting: optimal

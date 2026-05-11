@@ -318,8 +318,12 @@ class wrap(object):
         elif (self.instrument == 'NIRSPEC'):
             if detector == 'nrs1':
                 detectorGain = 1.420 ## NRS1 median
+                badPxArray = [[1892,7]]
             else:
                 detectorGain =  1.614 ## NRS2 median
+                badPxArray = None
+            
+            specParams['custBadPixels'] = badPxArray
             
             specParams['detectorGain'] = detectorGain
             if (firstHead['GRATING'] == 'G395H') & (firstHead['FILTER'] == 'F290LP'):
